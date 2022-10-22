@@ -1,1 +1,1 @@
-# lazy-installer
+# Lazy Linux package installer
