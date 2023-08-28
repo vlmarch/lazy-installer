@@ -110,6 +110,8 @@ if [[ $(command -v apt) ]]; then
     install_if_not_exist gufw
     if ! [[ $(sudo ufw status | grep -w active) ]]; then
         sudo ufw enable
+        sudo ufw default deny incoming
+        sudo ufw default allow outgoing
     fi
 
     # Battery life
