@@ -130,7 +130,7 @@ if [[ $(command -v apt) ]]; then
     install_if_not_exist build-essential
     install_if_not_exist cmake
     install_if_not_exist dkms
-    install_if_not_exist linux-headers
+    install_if_not_exist linux-headers # Debian ???
     install_if_not_exist git
     install_if_not_exist neofetch
     install_if_not_exist colortest
@@ -215,8 +215,8 @@ if [[ $(command -v apt) ]]; then
     fi
 
     # Fonts
-    install_if_not_exist ttf-mscorefonts-installer
-    install_if_not_exist fonts-ubuntu
+    install_if_not_exist ttf-mscorefonts-installer # Debian ???
+    install_if_not_exist fonts-ubuntu # Debian ???
     # install_if_not_exist fonts-firacode
     install_if_not_exist fonts-hack
     # install_if_not_exist fonts-jetbrains-mono
@@ -384,7 +384,7 @@ if [ ! -d "$HOME/Documents/GitHub/dotfiles" ]; then
 fi
 
 
-# Install miniconda3
+# Install miniconda3 # Debian ???
 if [ ! -d "$HOME/miniconda3" ]; then
     mkdir -p ~/miniconda3
     wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -o ~/miniconda3/miniconda.sh
