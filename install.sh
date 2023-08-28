@@ -130,7 +130,8 @@ if [[ $(command -v apt) ]]; then
     install_if_not_exist build-essential
     install_if_not_exist cmake
     install_if_not_exist dkms
-    install_if_not_exist linux-headers # Debian ???
+    install_if_not_exist linux-headers # Ubuntu
+    install_if_not_exist linux-headers-amd64 # For Debian
     install_if_not_exist git
     install_if_not_exist neofetch
     install_if_not_exist colortest
