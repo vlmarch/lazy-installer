@@ -215,6 +215,7 @@ if [[ $(command -v apt) ]]; then
     fi
 
     # Fonts
+    install_if_not_exist software-properties-common
     install_if_not_exist ttf-mscorefonts-installer # Debian ???
     install_if_not_exist fonts-ubuntu # Debian ???
     # install_if_not_exist fonts-firacode
