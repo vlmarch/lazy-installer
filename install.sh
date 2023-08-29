@@ -209,9 +209,8 @@ if [[ $(command -v apt) ]]; then
         git clone --depth=1 https://github.com/spaceship-prompt/spaceship-prompt.git "$HOME/.zsh/spaceship"
     fi
 
-    if ! [ $0 = 'zsh' ]; then
+    if ! [ -n "$ZSH_VERSION" ]; then
         chsh -s $(which zsh)
-        source $HOME/.zshrc
     fi
 
     # Fonts
@@ -378,26 +377,7 @@ fi
 # Dotfiles
 mkdir -p "$HOME/Documents/GitHub"
 if [ ! -d "$HOME/Documents/GitHub/dotfiles" ]; then
-    git clone https://github.com/vlmarch/dotfiles.git "$HOME/Documents/GitHub/dotfiles" &&
+    git clone https://github.com/vlmarch/dotfiles.git "$HOME/Documents/GitHub/dotfiles"
     bash "$HOME/Documents/GitHub/dotfiles/install.sh"
+    source $HOME/.bashrc
 fi
-
-
-# Install miniconda3 # Debian ???
-if [ ! -d "$HOME/miniconda3" ]; then
-    mkdir -p ~/miniconda3
-    wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -o ~/miniconda3/miniconda.sh &&
-    bash ~/miniconda3/miniconda.sh -b -u -p ~/miniconda3 &&
-    rm -rf ~/miniconda3/miniconda.sh
-fi
-
-# Install Rust and Cargo
-if [ ! -d "$HOME/.cargo" ]; then
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-fi
-
-# TODO: Install Ruby
-# TODO: Install Node.js
-
-# TODO: Additional software Note
-# Brave, VSCode, Remmina, WineHQ, Joplin, Libreoffice, Kicad, Blender, Arduino IDE etc.
