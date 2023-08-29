@@ -1,5 +1,22 @@
 #!/bin/bash
 
+
+# Functions
+function install_if_not_exist() {
+    if dpkg -s "$1" &>/dev/null; then
+        PKG_EXIST=$(dpkg -s "$1" | grep "install ok installed")
+        if [[ -n "$PKG_EXIST" ]]; then
+            echo -e "\e[1;32m [ INFO ] \e[0m $1 - is already installed."
+            return
+        fi
+    fi
+    echo -e "\e[1;33m [ INFO ] \e[0m $1 - installation..."
+    sudo apt install "$1" -y
+}
+
+
+# ------------------------------------------------------------------------------
+
 echo
 echo '     __                         _            __        ____          '
 echo '    / /   ____ _____  __  __   (_)___  _____/ /_____ _/ / /__  _____ '
@@ -19,28 +36,6 @@ fi
 
 # GRUB config
 
-# ------------------------------------------------------------------------------
-
-# Functions
-function install_if_not_exist() {
-    if dpkg -s "$1" &>/dev/null; then
-        PKG_EXIST=$(dpkg -s "$1" | grep "install ok installed")
-        if [[ -n "$PKG_EXIST" ]]; then
-            echo -e "\e[1;32m [ INFO ] \e[0m $1 - is already installed."
-            return
-        fi
-    fi
-    echo -e "\e[1;33m [ INFO ] \e[0m $1 - installation..."
-    sudo apt install "$1" -y
-}
-
-
-# ------------------------------------------------------------------------------
-
-# Swappiness settings
-# cat /proc/sys/vm/swappiness # Check system swappiness value
-sysctl -w vm.swappiness=10
-
 
 # Disable Suspend and Hibernation
 # sudo systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target
@@ -50,6 +45,12 @@ sysctl -w vm.swappiness=10
 # if [[ $(sudo systemctl status hybrid-sleep.target | grep -w loaded) ]]; then
 #     sudo systemctl mask hybrid-sleep.target
 # fi
+
+
+# Swappiness settings
+# cat /proc/sys/vm/swappiness # Check system swappiness value
+sudo sysctl -w vm.swappiness=10
+
 
 # Check package manager
 if [[ $(command -v apt) ]]; then
@@ -99,7 +100,8 @@ if [[ $(command -v apt) ]]; then
 
     # Printers
     install_if_not_exist cups
-    install_if_not_exist cups-pdf
+    # install_if_not_exist cups-pdf
+    install_if_not_exist printer-driver-cups-pdf
     install_if_not_exist ghostscript
 
     # Bluetooth (TODO)
@@ -123,7 +125,7 @@ if [[ $(command -v apt) ]]; then
     install_if_not_exist build-essential
     install_if_not_exist cmake
     install_if_not_exist dkms
-    install_if_not_exist linux-headers-$(uname -r)
+    # install_if_not_exist linux-headers-$(uname -r)
     install_if_not_exist git
     install_if_not_exist neofetch
     install_if_not_exist colortest
@@ -207,14 +209,13 @@ if [[ $(command -v apt) ]]; then
         git clone --depth=1 https://github.com/spaceship-prompt/spaceship-prompt.git "$HOME/.zsh/spaceship"
     fi
 
-    if ! [ $SHELL = '/bin/zsh' ]; then
+    if ! [ $0 = 'zsh' ]; then
         chsh -s $(which zsh)
     fi
 
     # Fonts
-    install_if_not_exist software-properties-common
-    install_if_not_exist ttf-mscorefonts-installer # Debian ???
-    install_if_not_exist fonts-ubuntu # Debian ???
+    # install_if_not_exist ttf-mscorefonts-installer
+    # install_if_not_exist fonts-ubuntu
     # install_if_not_exist fonts-firacode
     install_if_not_exist fonts-hack
     # install_if_not_exist fonts-jetbrains-mono
@@ -244,43 +245,43 @@ if [ $XDG_CURRENT_DESKTOP = "XFCE" ]; then
     echo "Configure XFCE"
 
     # thunar
-    xfconf-query -c thunar -p "/default-view" -s "ThunarCompactView"
-    xfconf-query -c thunar -p "/misc-change-window-icon" -s true
-    xfconf-query -c thunar -p "/misc-date-style" -s "THUNAR_DATE_STYLE_YYYYMMDD"
-    xfconf-query -c thunar -p "/misc-directory-specific-settings" --create --type bool -s false
-    xfconf-query -c thunar -p "/misc-single-click" -s false
-    xfconf-query -c thunar -p "/misc-small-toolbar-icons" --create --type bool -s true
-    xfconf-query -c thunar -p "/misc-text-beside-icons" -s false
-    xfconf-query -c thunar -p "/misc-thumbnail-draw-frames" -s false
-    xfconf-query -c thunar -p "/misc-thumbnail-mode" -s "THUNAR_THUMBNAIL_MODE_ALWAYS"
-    xfconf-query -c thunar -p "/misc-volume-management" -s true
-    xfconf-query -c thunar -p "/shortcuts-icon-emblems" -s true
-    xfconf-query -c thunar -p "/shortcuts-icon-size" -s "THUNAR_ICON_SIZE_16"
+    xfconf-query -c thunar -p "/default-view" -n -t string -s "ThunarCompactView"
+    xfconf-query -c thunar -p "/misc-change-window-icon" -n -t bool -s true
+    xfconf-query -c thunar -p "/misc-date-style" -n -t string -s "THUNAR_DATE_STYLE_YYYYMMDD"
+    xfconf-query -c thunar -p "/misc-directory-specific-settings" -n -t bool -s false
+    xfconf-query -c thunar -p "/misc-single-click" -n -t bool -s false
+    xfconf-query -c thunar -p "/misc-small-toolbar-icons" -n -t bool -s true
+    xfconf-query -c thunar -p "/misc-text-beside-icons" -n -t bool -s false
+    xfconf-query -c thunar -p "/misc-thumbnail-draw-frames" -n -t bool -s false
+    xfconf-query -c thunar -p "/misc-thumbnail-mode" -n -t string -s "THUNAR_THUMBNAIL_MODE_ALWAYS"
+    xfconf-query -c thunar -p "/misc-volume-management" -n -t bool -s true
+    xfconf-query -c thunar -p "/shortcuts-icon-emblems" -n -t bool -s true
+    xfconf-query -c thunar -p "/shortcuts-icon-size" -n -t string -s "THUNAR_ICON_SIZE_16"
     xfconf-query -c thunar -p "/tree-icon-emblems" -s true
-    xfconf-query -c thunar -p "/misc-recursive-search" -s "THUNAR_RECURSIVE_SEARCH_ALWAYS"
+    xfconf-query -c thunar -p "/misc-recursive-search" -n -t string -s "THUNAR_RECURSIVE_SEARCH_ALWAYS"
 
     # xfce4-appfinder
-    xfconf-query -c xfce4-appfinder -p "/always-center" -s true
-    xfconf-query -c xfce4-appfinder -p "/category-icon-size" -s 0
-    xfconf-query -c xfce4-appfinder -p "/enable-service" -s true
-    xfconf-query -c xfce4-appfinder -p "/hide-category-pane" -s false
-    xfconf-query -c xfce4-appfinder -p "/icon-view" -s true
-    xfconf-query -c xfce4-appfinder -p "/item-icon-size" -s 0
-    xfconf-query -c xfce4-appfinder -p "/single-window" -s true
+    xfconf-query -c xfce4-appfinder -p "/always-center" -n -t bool -s true
+    xfconf-query -c xfce4-appfinder -p "/category-icon-size" -n -t int -s 0
+    xfconf-query -c xfce4-appfinder -p "/enable-service" -n -t bool -s true
+    xfconf-query -c xfce4-appfinder -p "/hide-category-pane" -n -t bool -s false
+    xfconf-query -c xfce4-appfinder -p "/icon-view" -n -t bool -s true
+    xfconf-query -c xfce4-appfinder -p "/item-icon-size" -n -t int -s 0
+    xfconf-query -c xfce4-appfinder -p "/single-window" -n -t bool -s true
     xfconf-query -c xfce4-appfinder -p "/text-beside-icons" -s true
 
     # xfce4-desktop
-    xfconf-query -c xfce4-desktop -p "/desktop-icons/file-icons/show-filesystem" -s false
-    xfconf-query -c xfce4-desktop -p "/desktop-icons/file-icons/show-home" -s false
-    xfconf-query -c xfce4-desktop -p "/desktop-icons/file-icons/show-removable" -s false
-    xfconf-query -c xfce4-desktop -p "/desktop-icons/file-icons/show-trash" -s false
-    xfconf-query -c xfce4-desktop -p "/desktop-icons/icon-size" -s 36
-    xfconf-query -c xfce4-desktop -p "/desktop-icons/show-hidden-files" -s false
-    xfconf-query -c xfce4-desktop -p "/desktop-icons/show-thumbnails" -s true
-    xfconf-query -c xfce4-desktop -p "/desktop-icons/show-tooltips" -s false
-    xfconf-query -c xfce4-desktop -p "/desktop-icons/primary" -s false
-    xfconf-query -c xfce4-desktop -p "/desktop-icons/use-custom-font-size" -s true
-    xfconf-query -c xfce4-desktop -p "/desktop-icons/font-size" -s 9
+    xfconf-query -c xfce4-desktop -p "/desktop-icons/file-icons/show-filesystem" -n -t bool -s false
+    xfconf-query -c xfce4-desktop -p "/desktop-icons/file-icons/show-home" -n -t bool -s false
+    xfconf-query -c xfce4-desktop -p "/desktop-icons/file-icons/show-removable" -n -t bool -s false
+    xfconf-query -c xfce4-desktop -p "/desktop-icons/file-icons/show-trash" -n -t bool -s false
+    xfconf-query -c xfce4-desktop -p "/desktop-icons/icon-size" -n -t int -s 36
+    xfconf-query -c xfce4-desktop -p "/desktop-icons/show-hidden-files" -n -t bool -s false
+    xfconf-query -c xfce4-desktop -p "/desktop-icons/show-thumbnails" -n -t bool -s true
+    xfconf-query -c xfce4-desktop -p "/desktop-icons/show-tooltips" -n -t bool -s false
+    xfconf-query -c xfce4-desktop -p "/desktop-icons/primary" -n -t bool -s false
+    xfconf-query -c xfce4-desktop -p "/desktop-icons/use-custom-font-size" -n -t bool -s true
+    xfconf-query -c xfce4-desktop -p "/desktop-icons/font-size" -n -t int -s 9
 
 
     # xfce4-keyboard-shortcuts
@@ -376,7 +377,7 @@ fi
 # Dotfiles
 mkdir -p "$HOME/Documents/GitHub"
 if [ ! -d "$HOME/Documents/GitHub/dotfiles" ]; then
-    git clone https://github.com/vlmarch/dotfiles.git "$HOME/Documents/GitHub/dotfiles"
+    git clone https://github.com/vlmarch/dotfiles.git "$HOME/Documents/GitHub/dotfiles" &&
     bash "$HOME/Documents/GitHub/dotfiles/install.sh"
 fi
 
@@ -384,8 +385,8 @@ fi
 # Install miniconda3 # Debian ???
 if [ ! -d "$HOME/miniconda3" ]; then
     mkdir -p ~/miniconda3
-    wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -o ~/miniconda3/miniconda.sh
-    bash ~/miniconda3/miniconda.sh -b -u -p ~/miniconda3
+    wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -o ~/miniconda3/miniconda.sh &&
+    bash ~/miniconda3/miniconda.sh -b -u -p ~/miniconda3 &&
     rm -rf ~/miniconda3/miniconda.sh
 fi
 
