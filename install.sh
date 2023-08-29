@@ -1,16 +1,24 @@
 #!/bin/bash
 
+# Constants
+NC='\033[0m' # No Color
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
 
 # Functions
+
 function install_if_not_exist() {
     if dpkg -s "$1" &>/dev/null; then
         PKG_EXIST=$(dpkg -s "$1" | grep "install ok installed")
         if [[ -n "$PKG_EXIST" ]]; then
-            echo -e "\e[1;32m [ INFO ] \e[0m $1 - is already installed."
+            echo -e "$GREEN [ INFO ] $NC $1 - is already installed."
             return
         fi
     fi
-    echo -e "\e[1;33m [ INFO ] \e[0m $1 - installation..."
+    echo -e "$YELLOW [ INFO ] $NC $1 - installation..."
     sudo apt install "$1" -y
 }
 
@@ -29,37 +37,50 @@ sudo echo # sudo Permissions
 
 # Check operating system
 if [ "$(uname)" != "Linux" ]; then
-    echo "[ ERROR ] Script designed for Linux."
+    echo -e "$RED [ ERROR ] $NC Script designed for Linux."
     echo
     exit 1
 fi
 
-# GRUB config
+echo
+echo -e "$BLUE [ INFO ] $NC Disable Suspend and Hibernation"
+echo
 
-
-# Disable Suspend and Hibernation
 # sudo systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target
-# if [[ $(sudo systemctl status hibernate.target | grep -w loaded) ]]; then
-#     sudo systemctl mask hibernate.target
-# fi
-# if [[ $(sudo systemctl status hybrid-sleep.target | grep -w loaded) ]]; then
-#     sudo systemctl mask hybrid-sleep.target
-# fi
+if [[ $(sudo systemctl status hibernate.target | grep -w loaded) ]]; then
+    sudo systemctl mask hibernate.target
+fi
+if [[ $(sudo systemctl status hybrid-sleep.target | grep -w loaded) ]]; then
+    sudo systemctl mask hybrid-sleep.target
+fi
 
 
-# Swappiness settings
+echo
+echo -e "$BLUE [ INFO ] $NC Swappiness settings"
+echo
+
 # cat /proc/sys/vm/swappiness # Check system swappiness value
 sudo sysctl -w vm.swappiness=10
 
 
-# Check package manager
+echo
+echo -e "$BLUE [ INFO ] $NC Checking the packege manager"
+echo
+
+# TODO: Try to use: if [[ $(lsb_release -i | grep -e Debian -e Linuxmint -e Ubuntu) ]]; then
 if [[ $(command -v apt) ]]; then
-    echo "APT detected"
+    echo
+    echo -e "$BLUE [ INFO ] $NC APT detected"
     echo
 
     sudo apt update && sudo apt upgrade -y
 
-    # Drivers
+    # --------------------------------------------------------------------------
+
+    echo
+    echo -e "$BLUE [ INFO ] $NC Installing some drivers"
+    echo
+
     # microcode firmware
     if [[ $(lscpu | grep Intel) ]]; then
         install_if_not_exist intel-microcode
@@ -83,7 +104,12 @@ if [[ $(command -v apt) ]]; then
     # install_if_not_exist vulkan-tools
     # install_if_not_exist vulkan-validationlayers
 
-    # Firewall
+    # --------------------------------------------------------------------------
+
+    echo
+    echo -e "$BLUE [ INFO ] $NC Installing and configuring a firewall"
+    echo
+
     # https://christitus.com/linux-security-mistakes/
     install_if_not_exist ufw
     install_if_not_exist gufw
@@ -98,15 +124,23 @@ if [[ $(command -v apt) ]]; then
     # install_if_not_exist tlp
     # install_if_not_exist powertop
 
-    # Printers
+    echo
+    echo -e "$BLUE [ INFO ] $NC Installing packages for printers"
+    echo
+
     install_if_not_exist cups
     # install_if_not_exist cups-pdf
     install_if_not_exist printer-driver-cups-pdf
     install_if_not_exist ghostscript
 
-    # Bluetooth (TODO)
+    echo
+    echo -e "$BLUE [ INFO ] $NC Installing packages for Bluetooth (TODO)"
+    echo
+
     if [[ $(dmesg |grep Bluetooth) ]]; then
-        echo Bluetooth
+        echo
+        echo -e "$BLUE [ INFO ] $NC Bluetooth detected"
+        echo
         # install_if_not_exist bluez
         # install_if_not_exist blueman
         # sudo systemctl enable bluetooth.service
@@ -117,7 +151,7 @@ if [[ $(command -v apt) ]]; then
 
 
     echo
-    echo "Development tools installation"
+    echo -e "$BLUE [ INFO ] $NC Development tools installation"
     echo
 
     install_if_not_exist curl
@@ -128,13 +162,13 @@ if [[ $(command -v apt) ]]; then
     # install_if_not_exist linux-headers-$(uname -r)
     install_if_not_exist git
     install_if_not_exist neofetch
-    install_if_not_exist colortest
+    # install_if_not_exist colortest
     # install_if_not_exist gnome-themes-extra
     # install_if_not_exist gtk2-engines-murrine
     # install_if_not_exist sassc
 
     echo
-    echo "APT tools"
+    echo -e "$BLUE [ INFO ] $NC Some tools installation"
     echo
 
     # Rootkit detector
@@ -184,13 +218,23 @@ if [[ $(command -v apt) ]]; then
     # install_if_not_exist fd-find
     # install_if_not_exist ripgrep
 
-    # Apps
+    echo
+    echo -e "$BLUE [ INFO ] $NC Some apps installation"
+    echo
+
+    install_if_not_exist timeshift # Timeshift
+    install_if_not_exist file-roller # GNOME File Roller
+    install_if_not_exist gnome-disks # GNOME Disks
     # install_if_not_exist gparted # GNOME partition editor
-    # install_if_not_exist virt-manager # Virtual Machine Manager
-    # install_if_not_exist liferea # RSS Readers
+    # install_if_not_exist simple-scan # GNOME Document Scanner
+    install_if_not_exist virt-manager # Virtual Machine Manager
+    install_if_not_exist liferea # RSS Readers
     # install_if_not_exist newsboat # CLI RSS Readers
     # install_if_not_exist thunderbird # E-Mails application
-    # install_if_not_exist libreoffice
+    # install_if_not_exist libreoffice # LibreOffice
+    # install_if_not_exist transmission-gtk # Transmission
+    # install_if_not_exist mintstick
+    # install_if_not_exist xed # xed Text Editor
 
     # Just for fun
     # install_if_not_exist fortune
@@ -198,22 +242,12 @@ if [[ $(command -v apt) ]]; then
     # install_if_not_exist hollywood
     # install_if_not_exist cmatrix
 
-    # ZSH and ZSH plugins
-    install_if_not_exist zsh
-    install_if_not_exist zsh-syntax-highlighting
-    install_if_not_exist zsh-autosuggestions
-
-    # spaceship-prompt installation
-    mkdir -p "$HOME/.zsh"
-    if [ ! -d "$HOME/.zsh/spaceship" ]; then
-        git clone --depth=1 https://github.com/spaceship-prompt/spaceship-prompt.git "$HOME/.zsh/spaceship"
-    fi
-
-    if ! [ -n "$ZSH_VERSION" ]; then
-        chsh -s $(which zsh)
-    fi
+    echo
+    echo -e "$BLUE [ INFO ] $NC Fonts installation"
+    echo
 
     # Fonts
+    install_if_not_exist fonts-roboto
     # install_if_not_exist ttf-mscorefonts-installer
     # install_if_not_exist fonts-ubuntu
     # install_if_not_exist fonts-firacode
@@ -226,23 +260,46 @@ if [[ $(command -v apt) ]]; then
     # install_if_not_exist fonts-wine
     # install_if_not_exist fonts-freefont-ttf
     # install_if_not_exist fonts-dejavu
-    # install_if_not_exist fonts-roboto
+
+
+    echo
+    echo -e "$BLUE [ INFO ] $NC ZSH and ZSH plugins installation"
+    echo
+
+    install_if_not_exist zsh
+    install_if_not_exist zsh-syntax-highlighting
+    install_if_not_exist zsh-autosuggestions
+
+    # spaceship-prompt installation
+    mkdir -p "$HOME/.zsh"
+    if [ ! -d "$HOME/.zsh/spaceship" ]; then
+        git clone --depth=1 https://github.com/spaceship-prompt/spaceship-prompt.git "$HOME/.zsh/spaceship"
+    fi
+
+    if ! [ -n "$ZSH_VERSION" ]; then
+        echo -e "$GREEN [ INFO ] $NC Setting zsh as default"
+        chsh -s $(which zsh)
+    fi
 
     sudo apt autoclean -y && sudo apt autoremove -y
 
+
 elif [[ $(command -v packman) ]]; then
-    echo "pacman detected"
-
-    echo "WIP (Work in Progress)"
+    echo
+    echo -e "$BLUE [ INFO ] $NC packman detected"
+    echo
     exit 1
-
 else
-    echo "Script only supports APT and packman!"
+    echo -e "$RED [ ERROR ] $NC Script only supports APT!"
+    echo
     exit 1
 fi
 
 if [ $XDG_CURRENT_DESKTOP = "XFCE" ]; then
-    echo "Configure XFCE"
+    echo
+    echo -e "$BLUE [ INFO ] $NC XFCE detected"
+    echo -e "$GREEN [ INFO ] $NC Starting XFCE configurations..."
+    echo
 
     # thunar
     xfconf-query -c thunar -p "/default-view" -n -t string -s "ThunarCompactView"
@@ -364,17 +421,25 @@ if [ $XDG_CURRENT_DESKTOP = "XFCE" ]; then
     xfconf-query -c xsettings -p "/Gtk/MenuImages" -s false
 
 elif [ $XDG_CURRENT_DESKTOP = "GNOME" ]; then
-    echo "GNOME not supported :("
-    # echo "Configure GNOME"
+    echo
+    echo -e "$BLUE [ INFO ] $NC GNOME detected"
+    echo -e "$GREEN [ INFO ] $NC Starting GNOME configurations..."
+    echo -e "$RED [ ERROR ] $NC GNOME not supported :("
+    echo
     # install_if_not_exist gnome-tweak-tool
     # install_if_not_exist chrome-gnome-shell
     exit 1
 else
-    echo "Script only supports XFCE!"
+    echo -e "$RED [ ERROR ] $NC Script only supports XFCE!"
+    echo
     exit 1
 fi
 
-# Dotfiles
+
+echo
+echo -e "$BLUE [ INFO ] $NC Downloading and installing dotfiles"
+echo
+
 mkdir -p "$HOME/Documents/GitHub"
 if [ ! -d "$HOME/Documents/GitHub/dotfiles" ]; then
     git clone https://github.com/vlmarch/dotfiles.git "$HOME/Documents/GitHub/dotfiles"
