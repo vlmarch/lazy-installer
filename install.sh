@@ -211,6 +211,7 @@ if [[ $(command -v apt) ]]; then
 
     if ! [ $0 = 'zsh' ]; then
         chsh -s $(which zsh)
+        source $HOME/.zshrc
     fi
 
     # Fonts
@@ -257,7 +258,7 @@ if [ $XDG_CURRENT_DESKTOP = "XFCE" ]; then
     xfconf-query -c thunar -p "/misc-volume-management" -n -t bool -s true
     xfconf-query -c thunar -p "/shortcuts-icon-emblems" -n -t bool -s true
     xfconf-query -c thunar -p "/shortcuts-icon-size" -n -t string -s "THUNAR_ICON_SIZE_16"
-    xfconf-query -c thunar -p "/tree-icon-emblems" -s true
+    xfconf-query -c thunar -p "/tree-icon-emblems" -n -t bool -s true
     xfconf-query -c thunar -p "/misc-recursive-search" -n -t string -s "THUNAR_RECURSIVE_SEARCH_ALWAYS"
 
     # xfce4-appfinder
@@ -268,7 +269,7 @@ if [ $XDG_CURRENT_DESKTOP = "XFCE" ]; then
     xfconf-query -c xfce4-appfinder -p "/icon-view" -n -t bool -s true
     xfconf-query -c xfce4-appfinder -p "/item-icon-size" -n -t int -s 0
     xfconf-query -c xfce4-appfinder -p "/single-window" -n -t bool -s true
-    xfconf-query -c xfce4-appfinder -p "/text-beside-icons" -s true
+    xfconf-query -c xfce4-appfinder -p "/text-beside-icons" -n -t bool -s true
 
     # xfce4-desktop
     xfconf-query -c xfce4-desktop -p "/desktop-icons/file-icons/show-filesystem" -n -t bool -s false
