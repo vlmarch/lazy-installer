@@ -12,6 +12,8 @@ sudo echo # sudo Permissions
 
 # Check operating system
 if [ "$(uname)" != "Linux" ]; then
+    echo "[ ERROR ] Script designed for Linux."
+    echo
     exit 1
 fi
 
@@ -24,13 +26,12 @@ function install_if_not_exist() {
     if dpkg -s "$1" &>/dev/null; then
         PKG_EXIST=$(dpkg -s "$1" | grep "install ok installed")
         if [[ -n "$PKG_EXIST" ]]; then
-            echo "✅ $1 - is already installed."
+            echo -e "\e[1;32m [ INFO ] \e[0m $1 - is already installed."
             return
         fi
     fi
-    echo "🟡 $1 - installation..."
+    echo -e "\e[1;33m [ INFO ] \e[0m $1 - installation..."
     sudo apt install "$1" -y
-    echo "✅ $1 - installed."
 }
 
 
@@ -202,7 +203,9 @@ if [[ $(command -v apt) ]]; then
 
     # spaceship-prompt installation
     mkdir -p "$HOME/.zsh"
-    git clone --depth=1 https://github.com/spaceship-prompt/spaceship-prompt.git "$HOME/.zsh/spaceship"
+    if [ ! -d "$HOME/.zsh/spaceship" ]; then
+        git clone --depth=1 https://github.com/spaceship-prompt/spaceship-prompt.git "$HOME/.zsh/spaceship"
+    fi
 
     if ! [ $SHELL = '/bin/zsh' ]; then
         chsh -s $(which zsh)
