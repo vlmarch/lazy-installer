@@ -8,7 +8,6 @@ echo '  / /___/ /_/ / / /_/ /_/ /  / / / / (__  ) /_/ /_/ / / /  __/ /     '
 echo ' /_____/\__,_/ /___/\__, /  /_/_/ /_/____/\__/\__,_/_/_/\___/_/      '
 echo '                   /____/                                            '
 echo
-sudo echo # sudo Permissions
 
 # ------------------------------------------------------------------------------
 
@@ -24,7 +23,6 @@ sudo echo # sudo Permissions
 
 # https://github.com/pablopunk/fresh-install/blob/master/fresh-install.sh
 
-# TODO: Create new user: sudo useradd -m username; Add the user to the sudo group: sudo usermod -a -G sudo username
 # TODO: Switch to the fastest repository mirror
 # TODO: Public Key Authentication with SSH
 # TODO: Disable Root Login Over SSH
@@ -77,6 +75,11 @@ function install_if_not_exist() {
 if [ "$(uname)" != "Linux" ]; then
     exit 1
 fi
+
+# Add User To Sudoers Group
+# sudo useradd -m username # Create new user
+# sudo usermod -aG sudo "$USER"
+sudo echo # sudo Permissions
 
 # Disable Suspend and Hibernation
 # sudo systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target
