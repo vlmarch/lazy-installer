@@ -8,82 +8,47 @@ echo '  / /___/ /_/ / / /_/ /_/ /  / / / / (__  ) /_/ /_/ / / /  __/ /     '
 echo ' /_____/\__,_/ /___/\__, /  /_/_/ /_/____/\__/\__,_/_/_/\___/_/      '
 echo '                   /____/                                            '
 echo
-
-# ------------------------------------------------------------------------------
-
-# Security
-# https://sensorstechforum.com/10-best-methods-improve-linux-security/
-
-
-# sudo apt install libavcodec-extra gstreamer1.0-libav gstreamer1.0-plugins-ugly gstreamer1.0-vaapi
-
-# GStreamer
-# sudo apt install libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-bad1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-x gstreamer1.0-alsa gstreamer1.0-gl gstreamer1.0-gtk3 gstreamer1.0-qt5 gstreamer1.0-pulseaudio
-
-
-# https://github.com/pablopunk/fresh-install/blob/master/fresh-install.sh
-
-# TODO: Switch to the fastest repository mirror
-# TODO: Public Key Authentication with SSH
-# TODO: Disable Root Login Over SSH
-# TODO: Change the Default SSH Port
-# TODO: wine etc....
-
-        # sudo dpkg --add-architecture i386
-
-        # libgl1-mesa-glx:i386
-
-        # https://forums.debian.net/viewtopic.php?t=110962
-        # https://stackoverflow.com/questions/55313610/importerror-libgl-so-1-cannot-open-shared-object-file-no-such-file-or-directo
-
-
-        # sudo apt install -y ia32-libs
-
-        # Для Ubuntu и других дистрибутивов, основанных на Debian, необходимо добавить 32-битную архитектуру и установить необходимые пакеты, например выполнив в терминале:
-
-        # sudo apt install -y libgl1-mesa-glx:i386 libasound2-plugins:i386 libfontconfig1:i386 libsdl2-2.0-0:i386 libopenal1:i386
-
-# ------------------------------------------------------------------------------
-
-# Swappiness settings
-# sysctl -w vm.swappiness=10
-
-# GRUB config
-
-# ------------------------------------------------------------------------------
-
-
-# Varibels
-
-# Functions
-function install_if_not_exist() {
-    if dpkg -s "$1" &>/dev/null; then
-        PKG_EXIST=$(dpkg -s "$1" | grep "install ok installed")
-        if [[ -n "$PKG_EXIST" ]]; then
-            echo "$1 - is already installed."
-            return
-        fi
-    fi
-    echo "$1 - installation..."
-    sudo apt install "$1" -y
-}
-
-
-# ------------------------------------------------------------------------------
+sudo echo # sudo Permissions
 
 # Check operating system
 if [ "$(uname)" != "Linux" ]; then
     exit 1
 fi
 
-# Add User To Sudoers Group
-# sudo useradd -m username # Create new user
-# sudo usermod -aG sudo "$USER"
-sudo echo # sudo Permissions
+# GRUB config
+
+# ------------------------------------------------------------------------------
+
+# Functions
+function install_if_not_exist() {
+    if dpkg -s "$1" &>/dev/null; then
+        PKG_EXIST=$(dpkg -s "$1" | grep "install ok installed")
+        if [[ -n "$PKG_EXIST" ]]; then
+            echo "✅ $1 - is already installed."
+            return
+        fi
+    fi
+    echo "🟡 $1 - installation..."
+    sudo apt install "$1" -y
+    echo "✅ $1 - installed."
+}
+
+
+# ------------------------------------------------------------------------------
+
+# Swappiness settings
+# cat /proc/sys/vm/swappiness # Check system swappiness value
+sysctl -w vm.swappiness=10
+
 
 # Disable Suspend and Hibernation
 # sudo systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target
-# sudo systemctl mask hibernate.target hybrid-sleep.target
+# if [[ $(sudo systemctl status hibernate.target | grep -w loaded) ]]; then
+#     sudo systemctl mask hibernate.target
+# fi
+# if [[ $(sudo systemctl status hybrid-sleep.target | grep -w loaded) ]]; then
+#     sudo systemctl mask hybrid-sleep.target
+# fi
 
 # Check package manager
 if [[ $(command -v apt) ]]; then
@@ -92,24 +57,29 @@ if [[ $(command -v apt) ]]; then
 
     sudo apt update && sudo apt upgrade -y
 
-    # TODO: Drivers
-    # # Install tool for hardware detection
-    # sudo apt install nvidia-detect
-
-    # # Perform the scan
-    # sudo nvidia-detect
-
-    # # Install recommended driver. It is nvidia-driver for me. Yours could be different.
-    # sudo apt install nvidia-driver
-
-    # # Similar to NVIDIA, AMD offers its drivers which are also very easy to install.
-    # sudo apt install firmware-linux firmware-linux-nonfree libdrm-amdgpu1 xserver-xorg-video-amdgpu
-    # # If you play games, I would also recommend installing support for Vulkan.
-    # sudo apt install mesa-vulkan-drivers libvulkan1 vulkan-tools vulkan-validationlayers
-
+    # Drivers
     # microcode firmware
-    install_if_not_exist intel-microcode
-    # install_if_not_exist amd64-microcode
+    if [[ $(lscpu | grep Intel) ]]; then
+        install_if_not_exist intel-microcode
+    elif [[ $(lscpu | grep AMD) ]]; then
+        install_if_not_exist amd64-microcode
+    fi
+
+    # NVIDIA drivers
+    # install_if_not_exist nvidia-driver
+
+    # AMD drivers
+    # install_if_not_exist firmware-linux
+    # install_if_not_exist firmware-linux-nonfree
+    # install_if_not_exist libdrm-amdgpu1
+    # install_if_not_exist xserver-xorg-video-amdgpu
+
+    # Vulkan
+    # install_if_not_exist libvulkan1
+    # install_if_not_exist mesa-vulkan-drivers
+    # install_if_not_exist vulkan-utils
+    # install_if_not_exist vulkan-tools
+    # install_if_not_exist vulkan-validationlayers
 
     # Firewall
     # https://christitus.com/linux-security-mistakes/
@@ -119,6 +89,7 @@ if [[ $(command -v apt) ]]; then
         sudo ufw enable
         sudo ufw default deny incoming
         sudo ufw default allow outgoing
+        # sudo ufw allow ssh
     fi
 
     # Battery life
@@ -130,6 +101,18 @@ if [[ $(command -v apt) ]]; then
     install_if_not_exist cups-pdf
     install_if_not_exist ghostscript
 
+    # Bluetooth (TODO)
+    if [[ $(dmesg |grep Bluetooth) ]]; then
+        echo Bluetooth
+        # install_if_not_exist bluez
+        # install_if_not_exist blueman
+        # sudo systemctl enable bluetooth.service
+        # sudo systemctl start bluetooth.service
+        # rfkill # Check status
+        # rfkill unblock bluetooth
+    fi
+
+
     echo
     echo "Development tools installation"
     echo
@@ -139,14 +122,13 @@ if [[ $(command -v apt) ]]; then
     install_if_not_exist build-essential
     install_if_not_exist cmake
     install_if_not_exist dkms
-    install_if_not_exist linux-headers # Ubuntu
-    install_if_not_exist linux-headers-amd64 # For Debian
+    install_if_not_exist linux-headers-$(uname -r)
     install_if_not_exist git
     install_if_not_exist neofetch
     install_if_not_exist colortest
-    install_if_not_exist gnome-themes-extra
-    install_if_not_exist gtk2-engines-murrine
-    install_if_not_exist sassc
+    # install_if_not_exist gnome-themes-extra
+    # install_if_not_exist gtk2-engines-murrine
+    # install_if_not_exist sassc
 
     echo
     echo "APT tools"
@@ -161,6 +143,7 @@ if [[ $(command -v apt) ]]; then
     install_if_not_exist htop
     # install_if_not_exist bashtop
     # install_if_not_exist btop
+    # install_if_not_exist conky
 
     # Network monitor
     install_if_not_exist iftop
@@ -181,7 +164,7 @@ if [[ $(command -v apt) ]]; then
 
     # Archive manager / Console Compression Tools
     # install_if_not_exist rar
-    install_if_not_exist unrar
+    install_if_not_exist unrar-free
     install_if_not_exist zip
     install_if_not_exist unzip
     install_if_not_exist p7zip
@@ -191,7 +174,6 @@ if [[ $(command -v apt) ]]; then
     install_if_not_exist tree
     install_if_not_exist exa
     install_if_not_exist bat
-    # install_if_not_exist conky
     # install_if_not_exist rofi
     # install_if_not_exist tmux
     # install_if_not_exist putty
@@ -200,10 +182,12 @@ if [[ $(command -v apt) ]]; then
     # install_if_not_exist ripgrep
 
     # Apps
-    install_if_not_exist thunderbird # E-Mails application
-    install_if_not_exist virt-manager # Virtual Machine Manager
-    install_if_not_exist liferea # RSS Readers
+    # install_if_not_exist gparted # GNOME partition editor
+    # install_if_not_exist virt-manager # Virtual Machine Manager
+    # install_if_not_exist liferea # RSS Readers
     # install_if_not_exist newsboat # CLI RSS Readers
+    # install_if_not_exist thunderbird # E-Mails application
+    # install_if_not_exist libreoffice
 
     # Just for fun
     # install_if_not_exist fortune
@@ -255,7 +239,6 @@ fi
 
 if [ $XDG_CURRENT_DESKTOP = "XFCE" ]; then
     echo "Configure XFCE"
-    # TODO: Kali linux
 
     # thunar
     xfconf-query -c thunar -p "/default-view" -s "ThunarCompactView"
