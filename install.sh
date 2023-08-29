@@ -78,6 +78,10 @@ if [ "$(uname)" != "Linux" ]; then
     exit 1
 fi
 
+# Disable Suspend and Hibernation
+# sudo systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target
+# sudo systemctl mask hibernate.target hybrid-sleep.target
+
 # Check package manager
 if [[ $(command -v apt) ]]; then
     echo "APT detected"
