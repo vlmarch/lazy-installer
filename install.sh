@@ -406,7 +406,7 @@ if [ $XDG_CURRENT_DESKTOP = "XFCE" ]; then
 
 
     # xfce4-panel
-    xfconf-query -c xfce4-panel -p "/panels/dark-mode" -s true
+    xfconf-query -c xfce4-panel -p "/panels/dark-mode" -n -t bool -s true
 
     # xfwm4 (TODO)
     xfconf-query -c xfwm4 -p "/general/click_to_focus" -s true
