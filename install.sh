@@ -442,11 +442,9 @@ elif [ $XDG_CURRENT_DESKTOP = "GNOME" ]; then
     echo
     # install_if_not_exist gnome-tweak-tool
     # install_if_not_exist chrome-gnome-shell
-    exit 1
 else
     echo -e "$RED [ ERROR ] $NC Script only supports XFCE!"
     echo
-    exit 1
 fi
 
 
