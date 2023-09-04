@@ -125,13 +125,27 @@ if [[ $(command -v apt) ]]; then
     # install_if_not_exist powertop
 
     echo
-    echo -e "$BLUE [ INFO ] $NC Installing packages for printers"
+    echo -e "$BLUE [ INFO ] $NC Installing packages for printers / scanners"
     echo
 
-    install_if_not_exist cups
-    # install_if_not_exist cups-pdf
+    install_if_not_exist system-config-printer
+    install_if_not_exist simple-scan
+    
+    
+    if ! [[ $(sudo systemctl status cups.service | grep -w active) ]]; then
+        install_if_not_exist cups
+        sudo systemctl enable cups.service
+        sudo systemctl start cups.service
+    fi
+    
+    install_if_not_exist printer-driver-all
+    install_if_not_exist hp-ppd
+    install_if_not_exist hplip
+    
     install_if_not_exist printer-driver-cups-pdf
     install_if_not_exist ghostscript
+    sudo systemctl restart cups.service
+    sudo systemctl unmask cups.service
 
     echo
     echo -e "$BLUE [ INFO ] $NC Installing packages for Bluetooth (TODO)"
