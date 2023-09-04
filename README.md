@@ -26,6 +26,7 @@ systemctl reboot -i
     GRUB_TIMEOUT_STYLE=hidden
     GRUB_TIMEOUT=0
     GRUB_CMDLINE_LINUX_DEFAULT="quiet"
+    GRUB_BACKGROUND=""
     ```
     2. Update settings: `sudo update-grub`
 
