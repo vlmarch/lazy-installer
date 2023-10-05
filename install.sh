@@ -267,6 +267,8 @@ if [[ $(command -v apt) ]]; then
     # install_if_not_exist xed # xed Text Editor
     install_if_not_exist gimp
     install_if_not_exist inkscape
+    install_if_not_exist chromium
+    # install_if_not_exist kazam # screencast and screenshot
 
     # Just for fun
     # install_if_not_exist fortune
