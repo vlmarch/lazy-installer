@@ -42,18 +42,23 @@ if [ "$(uname)" != "Linux" ]; then
     exit 1
 fi
 
-echo
-echo -e "$BLUE [ INFO ] $NC Disable Suspend and Hibernation"
-echo
 
-# sudo systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target
-if [[ $(sudo systemctl status hibernate.target | grep -w loaded) ]]; then
-    sudo systemctl mask hibernate.target
-fi
-if [[ $(sudo systemctl status hybrid-sleep.target | grep -w loaded) ]]; then
-    sudo systemctl mask hybrid-sleep.target
-fi
+SWAP_TOTAL=$(grep SwapTotal /proc/meminfo | awk '{print $2}')
+RAM_TOTAL=$(grep MemTotal /proc/meminfo | awk '{print $2}')
+if [ "$RAM_TOTAL" -gt "$SWAP_TOTAL" ]; then
 
+    echo
+    echo -e "$BLUE [ INFO ] $NC Disable Suspend and Hibernation"
+    echo
+
+    # sudo systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target
+    if [[ $(sudo systemctl status hibernate.target | grep -w loaded) ]]; then
+        sudo systemctl mask hibernate.target
+    fi
+    if [[ $(sudo systemctl status hybrid-sleep.target | grep -w loaded) ]]; then
+        sudo systemctl mask hybrid-sleep.target
+    fi
+fi
 
 echo
 echo -e "$BLUE [ INFO ] $NC Swappiness settings"
@@ -74,6 +79,16 @@ if [[ $(command -v apt) ]]; then
     echo
 
     sudo apt update && sudo apt upgrade -y
+
+    # --------------------------------------------------------------------------
+
+    echo
+    echo -e "$BLUE [ INFO ] $NC Removing unneeded packages"
+    echo
+
+    sudo apt remove gnome-games cheese gnome-sound-recorder gnote yelp pidgin brasero sound-juicer malcontent
+
+    sudo apt autoremove && sudo apt clean
 
     # --------------------------------------------------------------------------
 
@@ -130,18 +145,18 @@ if [[ $(command -v apt) ]]; then
 
     install_if_not_exist system-config-printer
     install_if_not_exist simple-scan
-    
-    
+
+
     if ! [[ $(sudo systemctl status cups.service | grep -w active) ]]; then
         install_if_not_exist cups
         sudo systemctl enable cups.service
         sudo systemctl start cups.service
     fi
-    
+
     install_if_not_exist printer-driver-all
     install_if_not_exist hp-ppd
-    install_if_not_exist hplip
-    
+    # install_if_not_exist hplip
+
     install_if_not_exist printer-driver-cups-pdf
     install_if_not_exist ghostscript
     sudo systemctl restart cups.service
@@ -180,6 +195,7 @@ if [[ $(command -v apt) ]]; then
     # install_if_not_exist gnome-themes-extra
     # install_if_not_exist gtk2-engines-murrine
     # install_if_not_exist sassc
+    install_if_not_exist uuid-runtime
 
     echo
     echo -e "$BLUE [ INFO ] $NC Some tools installation"
@@ -249,6 +265,8 @@ if [[ $(command -v apt) ]]; then
     # install_if_not_exist transmission-gtk # Transmission
     # install_if_not_exist mintstick
     # install_if_not_exist xed # xed Text Editor
+    install_if_not_exist gimp
+    install_if_not_exist inkscape
 
     # Just for fun
     # install_if_not_exist fortune
