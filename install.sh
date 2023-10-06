@@ -86,7 +86,7 @@ if [[ $(command -v apt) ]]; then
     echo -e "$BLUE [ INFO ] $NC Removing unneeded packages"
     echo
 
-    sudo apt remove gnome-games cheese gnome-sound-recorder gnote yelp pidgin brasero sound-juicer malcontent
+    sudo apt remove gnome-games cheese gnome-sound-recorder gnote yelp pidgin brasero sound-juicer malcontent gnome-contacts evolution gnome-maps gnome-weather xsane xfce4-goodies hv3 exfalso
 
     sudo apt autoremove && sudo apt clean
 
