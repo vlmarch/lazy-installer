@@ -282,8 +282,8 @@ if [[ $(command -v apt) ]]; then
 
     # Fonts
     install_if_not_exist fonts-roboto
-    # install_if_not_exist ttf-mscorefonts-installer
-    # install_if_not_exist fonts-ubuntu
+    install_if_not_exist ttf-mscorefonts-installer
+    install_if_not_exist fonts-ubuntu
     # install_if_not_exist fonts-firacode
     install_if_not_exist fonts-hack
     # install_if_not_exist fonts-jetbrains-mono
