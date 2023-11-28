@@ -45,7 +45,8 @@ bash install.sh
 
 
 ## TODO
-- Drivers installation
+- lightdm
+- OneDrive / NextCloud
 - Bluetooth configuration
 - GStreamer / PulseAudio / PipeWire installation
 - Public Key Authentication with SSH
