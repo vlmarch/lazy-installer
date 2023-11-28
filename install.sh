@@ -44,7 +44,13 @@ fi
 
 # Add User to Group
 sudo usermod -aG audio $USER
-sudo usermod -aG dialout $USER # Arduino
+# Arduino
+# sudo groupadd plugdev
+sudo groupadd dialout
+# sudo usermod -aG tty $USER
+sudo usermod -aG dialout $USER
+# sudo usermod -aG uucp $USER
+# sudo usermod -aG plugdev $USER
 
 SWAP_TOTAL=$(grep SwapTotal /proc/meminfo | awk '{print $2}')
 RAM_TOTAL=$(grep MemTotal /proc/meminfo | awk '{print $2}')
