@@ -42,6 +42,9 @@ if [ "$(uname)" != "Linux" ]; then
     exit 1
 fi
 
+# Add User to Group
+sudo usermod -aG audio $USER
+sudo usermod -aG dialout $USER # Arduino
 
 SWAP_TOTAL=$(grep SwapTotal /proc/meminfo | awk '{print $2}')
 RAM_TOTAL=$(grep MemTotal /proc/meminfo | awk '{print $2}')
@@ -196,6 +199,7 @@ if [[ $(command -v apt) ]]; then
     # install_if_not_exist gtk2-engines-murrine
     # install_if_not_exist sassc
     install_if_not_exist uuid-runtime
+    install_if_not_exist ruby-full
 
     echo
     echo -e "$BLUE [ INFO ] $NC Some tools installation"
@@ -478,3 +482,8 @@ if [ ! -d "$HOME/Documents/GitHub/dotfiles" ]; then
     bash "$HOME/Documents/GitHub/dotfiles/install.sh"
     source $HOME/.bashrc
 fi
+
+
+# OneDrive
+# - [Authorize the application with your OneDrive Account](https://github.com/abraunegg/onedrive/blob/master/docs/USAGE.md#authorize-the-application-with-your-onedrive-account)
+# - [OneDrive service running as a non-root user via systemd (All Linux Distributions)](https://github.com/abraunegg/onedrive/blob/master/docs/USAGE.md#onedrive-service-running-as-a-non-root-user-via-systemd-all-linux-distributions)
