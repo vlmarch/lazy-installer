@@ -206,6 +206,8 @@ if [[ $(command -v apt) ]]; then
     # install_if_not_exist sassc
     install_if_not_exist uuid-runtime
     install_if_not_exist ruby-full
+    install_if_not_exist dpkg-dev
+    install_if_not_exist debhelper
 
     echo
     echo -e "$BLUE [ INFO ] $NC Some tools installation"
