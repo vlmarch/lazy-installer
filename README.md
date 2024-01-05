@@ -52,5 +52,6 @@ bash install.sh
 - Public Key Authentication with SSH
 - [Change the Default SSH Port](https://linuxhandbook.com/change-ssh-port/)
 - [The 10 Best Methods on How to Improve Linux Security](https://sensorstechforum.com/10-best-methods-improve-linux-security/)
+- https://github.com/linuxmint/bulky for Nemo
 - (Future) Arch Linux packages installation
 - (Future) GNOME settings
