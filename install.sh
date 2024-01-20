@@ -19,7 +19,7 @@ function install_if_not_exist() {
         fi
     fi
     echo -e "$YELLOW [ INFO ] $NC $1 - installation..."
-    sudo apt install "$1" -y
+    sudo apt --install-suggests --install-recommends install "$1" -y
 }
 
 
@@ -199,6 +199,8 @@ if [[ $(command -v apt) ]]; then
     install_if_not_exist dkms
     # install_if_not_exist linux-headers-$(uname -r)
     install_if_not_exist git
+    install_if_not_exist vim
+    install_if_not_exist nano
     install_if_not_exist neofetch
     # install_if_not_exist colortest
     # install_if_not_exist gnome-themes-extra
