@@ -34,7 +34,7 @@ systemctl reboot -i
 
 ```bash
 cd $HOME/Downloads
-git clone https://github.com/vlmarch/lazy-installer.git
+git clone https://github.com/vec2pt/lazy-installer.git
 cd lazy-installer
 bash install.sh
 ```

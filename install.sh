@@ -489,7 +489,7 @@ echo
 
 mkdir -p "$HOME/Documents/GitHub"
 if [ ! -d "$HOME/Documents/GitHub/dotfiles" ]; then
-    git clone https://github.com/vlmarch/dotfiles.git "$HOME/Documents/GitHub/dotfiles"
+    git clone https://github.com/vec2pt/dotfiles.git "$HOME/Documents/GitHub/dotfiles"
     bash "$HOME/Documents/GitHub/dotfiles/install.sh"
     source $HOME/.bashrc
 fi
