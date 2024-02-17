@@ -39,14 +39,18 @@ cd lazy-installer
 bash install.sh
 ```
 
-7. Install additional software from dedicated repositories (such as: miniconda3, rust, ruby, Node.js, Brave, VSCode, Remmina, WineHQ, Joplin, Libreoffice, Kicad, Blender, Arduino IDE etc.)
+7. Install additional software from dedicated repositories (such as: miniconda3, rust, ruby, Node.js, Brave, VSCode, Remmina, WineHQ, Libreoffice, Blender, Arduino IDE etc.)
 
 8. Reboot system
 
 
 ## TODO
+- apt suggested/recommended packages - https://askubuntu.com/questions/18545/installing-suggested-recommended-packages
+- Debian Backports - (pipewire, puredata, Kicad etc.)
 - lightdm
 - OneDrive / NextCloud
+    - [Authorize the application with your OneDrive Account](https://github.com/abraunegg/onedrive/blob/master/docs/USAGE.md#authorize-the-application-with-your-onedrive-account)
+    - [OneDrive service running as a non-root user via systemd (All Linux Distributions)](https://github.com/abraunegg/onedrive/blob/master/docs/USAGE.md#onedrive-service-running-as-a-non-root-user-via-systemd-all-linux-distributions)
 - Bluetooth configuration
 - GStreamer / PulseAudio / PipeWire installation
 - Public Key Authentication with SSH

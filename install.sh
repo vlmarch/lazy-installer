@@ -498,8 +498,3 @@ if [ ! -d "$HOME/Documents/GitHub/dotfiles" ]; then
     bash "$HOME/Documents/GitHub/dotfiles/install.sh"
     source $HOME/.bashrc
 fi
-
-
-# OneDrive
-# - [Authorize the application with your OneDrive Account](https://github.com/abraunegg/onedrive/blob/master/docs/USAGE.md#authorize-the-application-with-your-onedrive-account)
-# - [OneDrive service running as a non-root user via systemd (All Linux Distributions)](https://github.com/abraunegg/onedrive/blob/master/docs/USAGE.md#onedrive-service-running-as-a-non-root-user-via-systemd-all-linux-distributions)
