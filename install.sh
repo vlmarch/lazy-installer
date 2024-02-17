@@ -325,6 +325,11 @@ if [[ $(command -v apt) ]]; then
         git clone --depth=1 https://github.com/spaceship-prompt/spaceship-prompt.git "$HOME/.zsh/spaceship"
     fi
 
+    # zsh-shift-select plugin installation
+    if [ ! -d "$HOME/.zsh/zsh-shift-select" ]; then
+        git clone https://github.com/jirutka/zsh-shift-select "$HOME/.zsh/zsh-shift-select"
+    fi
+
     if ! [ -n "$ZSH_VERSION" ]; then
         echo -e "$GREEN [ INFO ] $NC Setting zsh as default"
         chsh -s $(which zsh)
