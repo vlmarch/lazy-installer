@@ -244,8 +244,9 @@ if [[ $(command -v apt) ]]; then
     install_if_not_exist ncdu
 
     # Archive manager / Console Compression Tools
-    # install_if_not_exist rar
-    install_if_not_exist unrar-free
+    install_if_not_exist rar
+    install_if_not_exist unrar
+    # install_if_not_exist unrar-free
     install_if_not_exist zip
     install_if_not_exist unzip
     install_if_not_exist p7zip
