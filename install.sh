@@ -10,6 +10,27 @@ BLUE='\033[0;34m'
 
 # Functions
 
+function detect_package_manager() {
+    # TODO
+
+    declare -A osInfo;
+    # osInfo[/etc/arch-release]=pacman
+    osInfo[/etc/debian_version]=apt
+
+    for f in ${!osInfo[@]}
+    do
+        if [[ -f $f ]];then
+            echo Package manager: ${osInfo[$f]}
+            PACKAGE_MANAGER=${osInfo[$f]}
+        else
+            echo "The installed distribution is not supported"
+        fi
+    done
+}
+
+# detect_package_manager
+# echo $PACKAGE_MANAGER
+
 function install_if_not_exist() {
     if dpkg -s "$1" &>/dev/null; then
         PKG_EXIST=$(dpkg -s "$1" | grep "install ok installed")
@@ -75,6 +96,14 @@ echo
 
 # cat /proc/sys/vm/swappiness # Check system swappiness value
 sudo sysctl -w vm.swappiness=10
+
+
+# WIP ##########################################################################
+mkdir ~/.local/bin
+mkdir ~/.local/share/themes
+mkdir ~/.local/share/icons
+mkdir ~/.local/share/fonts
+# WIP ##########################################################################
 
 
 echo
@@ -197,19 +226,19 @@ if [[ $(command -v apt) ]]; then
     install_if_not_exist build-essential
     install_if_not_exist cmake
     install_if_not_exist dkms
+    install_if_not_exist stow
     # install_if_not_exist linux-headers-$(uname -r)
     install_if_not_exist git
-    install_if_not_exist vim
     install_if_not_exist nano
-    install_if_not_exist neofetch
-    # install_if_not_exist colortest
-    # install_if_not_exist gnome-themes-extra
-    # install_if_not_exist gtk2-engines-murrine
-    # install_if_not_exist sassc
+    # install_if_not_exist neofetch # TODO
     install_if_not_exist uuid-runtime
     install_if_not_exist ruby-full
     install_if_not_exist dpkg-dev
     install_if_not_exist debhelper
+    install_if_not_exist python3-venv
+
+    # vim
+    sudo apt purge vim-tiny vim && sudo apt install vim-nox
 
     echo
     echo -e "$BLUE [ INFO ] $NC Some tools installation"
@@ -297,19 +326,18 @@ if [[ $(command -v apt) ]]; then
     echo
 
     # Fonts
-    install_if_not_exist fonts-roboto
+    install_if_not_exist fonts-hack-ttf
+    # install_if_not_exist fonts-firacode
+    install_if_not_exist fonts-dejavu
+    install_if_not_exist fonts-inconsolata
     install_if_not_exist ttf-mscorefonts-installer
     install_if_not_exist fonts-ubuntu
-    # install_if_not_exist fonts-firacode
-    install_if_not_exist fonts-hack
-    # install_if_not_exist fonts-jetbrains-mono
-    install_if_not_exist fonts-inconsolata
+    # install_if_not_exist fonts-roboto
     # install_if_not_exist fonts-terminus
     # install_if_not_exist fonts-crosextra-caladea
     # install_if_not_exist fonts-crosextra-carlito
-    # install_if_not_exist fonts-wine
+    # install_if_not_exist fonts-wine # ??
     # install_if_not_exist fonts-freefont-ttf
-    # install_if_not_exist fonts-dejavu
 
 
     echo
@@ -336,8 +364,10 @@ if [[ $(command -v apt) ]]; then
         chsh -s $(which zsh)
     fi
 
-    sudo apt autoclean -y && sudo apt autoremove -y
+    # NeoVIM
+    # xclip (X11) or wl-clipboard (Wayland)
 
+    sudo apt autoclean -y && sudo apt autoremove -y
 
 elif [[ $(command -v packman) ]]; then
     echo

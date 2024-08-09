@@ -47,6 +47,7 @@ bash install.sh
 ## TODO
 - apt suggested/recommended packages - https://askubuntu.com/questions/18545/installing-suggested-recommended-packages
 - Debian Backports - (pipewire, puredata, Kicad etc.)
+- nvm
 - lightdm
 - OneDrive / NextCloud
     - [Authorize the application with your OneDrive Account](https://github.com/abraunegg/onedrive/blob/master/docs/USAGE.md#authorize-the-application-with-your-onedrive-account)
@@ -58,4 +59,3 @@ bash install.sh
 - [The 10 Best Methods on How to Improve Linux Security](https://sensorstechforum.com/10-best-methods-improve-linux-security/)
 - https://github.com/linuxmint/bulky for Nemo
 - (Future) Arch Linux packages installation
-- (Future) GNOME settings
