@@ -6,31 +6,7 @@ A simple script that allows you to install basic packages and apps. And also con
 
 ## Manual
 
-1. Create new user:
-```bash
-su - root
-sudo adduser username
-```
-2. Assign sudo rights to the local user:
-```bash
-su - root
-sudo usermod -aG sudo username
-systemctl reboot -i
-```
-3. [Disable Root Login Over SSH](https://www.howtogeek.com/828538/how-and-why-to-disable-root-login-over-ssh-on-linux/)
-4. Switch to the fastest repository mirror
-5. Configure the GRUB
-    1. Edit the GRUB configuration file: `sudo nano /etc/default/grub`
-
-    ```
-    GRUB_TIMEOUT_STYLE=hidden
-    GRUB_TIMEOUT=0
-    GRUB_CMDLINE_LINUX_DEFAULT="quiet"
-    GRUB_BACKGROUND=""
-    ```
-    2. Update settings: `sudo update-grub`
-
-6. Run Lazy installer
+1. Run Lazy installer
 
 ```bash
 cd $HOME/Downloads
@@ -39,9 +15,7 @@ cd lazy-installer
 bash install.sh
 ```
 
-7. Install additional software from dedicated repositories (such as: miniconda3, rust, ruby, Node.js, Brave, VSCode, Remmina, WineHQ, Libreoffice, Blender, Arduino IDE etc.)
-
-8. Reboot system
+2. Reboot system
 
 
 ## TODO
@@ -52,5 +26,7 @@ bash install.sh
 - lightdm
 - PipeWire installation
 - Public Key Authentication with SSH
+
+## Notes
 - [Change the Default SSH Port](https://linuxhandbook.com/change-ssh-port/)
 - [The 10 Best Methods on How to Improve Linux Security](https://sensorstechforum.com/10-best-methods-improve-linux-security/)

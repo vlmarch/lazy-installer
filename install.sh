@@ -354,7 +354,11 @@ install_if_not_exist bat # `cat` replacement
 # install_if_not_exist tmux
 # install_if_not_exist putty (???)
 # install_if_not_exist fzf
-# install_if_not_exist fd-find (???)
+# if [[ $(command -v apt) ]]; then
+#     install_if_not_exist fd-find
+# else
+#     install_if_not_exist fd
+# fi
 # install_if_not_exist ripgrep
 
 ################################################################################
