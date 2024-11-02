@@ -45,17 +45,12 @@ bash install.sh
 
 
 ## TODO
-- apt suggested/recommended packages - https://askubuntu.com/questions/18545/installing-suggested-recommended-packages
-- Debian Backports - (pipewire, puredata, Kicad etc.)
+- Repositories
+    - Debian Backports - (pipewire, puredata, Kicad)
+    - ARU - paru
 - nvm
 - lightdm
-- OneDrive / NextCloud
-    - [Authorize the application with your OneDrive Account](https://github.com/abraunegg/onedrive/blob/master/docs/USAGE.md#authorize-the-application-with-your-onedrive-account)
-    - [OneDrive service running as a non-root user via systemd (All Linux Distributions)](https://github.com/abraunegg/onedrive/blob/master/docs/USAGE.md#onedrive-service-running-as-a-non-root-user-via-systemd-all-linux-distributions)
-- Bluetooth configuration
-- GStreamer / PulseAudio / PipeWire installation
+- PipeWire installation
 - Public Key Authentication with SSH
 - [Change the Default SSH Port](https://linuxhandbook.com/change-ssh-port/)
 - [The 10 Best Methods on How to Improve Linux Security](https://sensorstechforum.com/10-best-methods-improve-linux-security/)
-- https://github.com/linuxmint/bulky for Nemo
-- (Future) Arch Linux packages installation

@@ -10,28 +10,8 @@ BLUE='\033[0;34m'
 
 # Functions
 
-function detect_package_manager() {
-    # TODO
-
-    declare -A osInfo;
-    # osInfo[/etc/arch-release]=pacman
-    osInfo[/etc/debian_version]=apt
-
-    for f in ${!osInfo[@]}
-    do
-        if [[ -f $f ]];then
-            echo Package manager: ${osInfo[$f]}
-            PACKAGE_MANAGER=${osInfo[$f]}
-        else
-            echo "The installed distribution is not supported"
-        fi
-    done
-}
-
-# detect_package_manager
-# echo $PACKAGE_MANAGER
-
 function install_if_not_exist() {
+    # TODO test it for pacman
     if dpkg -s "$1" &>/dev/null; then
         PKG_EXIST=$(dpkg -s "$1" | grep "install ok installed")
         if [[ -n "$PKG_EXIST" ]]; then
@@ -40,7 +20,11 @@ function install_if_not_exist() {
         fi
     fi
     echo -e "$YELLOW [ INFO ] $NC $1 - installation..."
-    sudo apt --install-suggests --install-recommends install "$1" -y
+    if [[ $(command -v apt) ]]; then
+        sudo apt --install-suggests --install-recommends install "$1" -y
+    elif [[ $(command -v pacman) ]]; then
+        sudo pacman -S "$1"
+    fi
 }
 
 
@@ -63,322 +47,437 @@ if [ "$(uname)" != "Linux" ]; then
     exit 1
 fi
 
-# Add User to Group
-sudo usermod -aG audio $USER
-# Arduino
-# sudo groupadd plugdev
-sudo groupadd dialout
-# sudo usermod -aG tty $USER
-sudo usermod -aG dialout $USER
-# sudo usermod -aG uucp $USER
-# sudo usermod -aG plugdev $USER
-
-SWAP_TOTAL=$(grep SwapTotal /proc/meminfo | awk '{print $2}')
-RAM_TOTAL=$(grep MemTotal /proc/meminfo | awk '{print $2}')
-if [ "$RAM_TOTAL" -gt "$SWAP_TOTAL" ]; then
-
-    echo
-    echo -e "$BLUE [ INFO ] $NC Disable Suspend and Hibernation"
-    echo
-
-    # sudo systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target
-    if [[ $(sudo systemctl status hibernate.target | grep -w loaded) ]]; then
-        sudo systemctl mask hibernate.target
-    fi
-    if [[ $(sudo systemctl status hybrid-sleep.target | grep -w loaded) ]]; then
-        sudo systemctl mask hybrid-sleep.target
-    fi
-fi
-
-echo
-echo -e "$BLUE [ INFO ] $NC Swappiness settings"
-echo
-
-# cat /proc/sys/vm/swappiness # Check system swappiness value
-sudo sysctl -w vm.swappiness=10
-
-
-# WIP ##########################################################################
-mkdir ~/.local/bin
-mkdir ~/.local/share/themes
-mkdir ~/.local/share/icons
-mkdir ~/.local/share/fonts
-# WIP ##########################################################################
-
-
-echo
-echo -e "$BLUE [ INFO ] $NC Checking the packege manager"
-echo
-
-# TODO: Try to use: if [[ $(lsb_release -i | grep -e Debian -e Linuxmint -e Ubuntu) ]]; then
+# Checking the packege manager
 if [[ $(command -v apt) ]]; then
     echo
     echo -e "$BLUE [ INFO ] $NC APT detected"
     echo
-
     sudo apt update && sudo apt upgrade -y
-
-    # --------------------------------------------------------------------------
-
+    # sudo apt autoremove && sudo apt clean
+elif [[ $(command -v pacman) ]]; then
     echo
-    echo -e "$BLUE [ INFO ] $NC Removing unneeded packages"
+    echo -e "$BLUE [ INFO ] $NC pacman detected"
     echo
+    # Refresh Package Lists
+    sudo pacman -Sy
 
-    sudo apt remove gnome-games cheese gnome-sound-recorder gnote yelp pidgin brasero sound-juicer malcontent gnome-contacts evolution gnome-maps gnome-weather xsane xfce4-goodies hv3 exfalso thunderbird*
-
-    sudo apt autoremove && sudo apt clean
-
-    # --------------------------------------------------------------------------
-
-    echo
-    echo -e "$BLUE [ INFO ] $NC Installing some drivers"
-    echo
-
-    # microcode firmware
-    if [[ $(lscpu | grep Intel) ]]; then
-        install_if_not_exist intel-microcode
-    elif [[ $(lscpu | grep AMD) ]]; then
-        install_if_not_exist amd64-microcode
-    fi
-
-    # NVIDIA drivers
-    # install_if_not_exist nvidia-driver
-
-    # AMD drivers
-    # install_if_not_exist firmware-linux
-    # install_if_not_exist firmware-linux-nonfree
-    # install_if_not_exist libdrm-amdgpu1
-    # install_if_not_exist xserver-xorg-video-amdgpu
-
-    # Vulkan
-    # install_if_not_exist libvulkan1
-    # install_if_not_exist mesa-vulkan-drivers
-    # install_if_not_exist vulkan-utils
-    # install_if_not_exist vulkan-tools
-    # install_if_not_exist vulkan-validationlayers
-
-    # --------------------------------------------------------------------------
-
-    echo
-    echo -e "$BLUE [ INFO ] $NC Installing and configuring a firewall"
-    echo
-
-    # https://christitus.com/linux-security-mistakes/
-    install_if_not_exist ufw
-    install_if_not_exist gufw
-    if ! [[ $(sudo ufw status | grep -w active) ]]; then
-        sudo ufw enable
-        sudo ufw default deny incoming
-        sudo ufw default allow outgoing
-        # sudo ufw allow ssh
-    fi
-
-    # Battery life
-    # install_if_not_exist tlp
-    # install_if_not_exist powertop
-
-    echo
-    echo -e "$BLUE [ INFO ] $NC Installing packages for printers / scanners"
-    echo
-
-    install_if_not_exist system-config-printer
-    install_if_not_exist simple-scan
-
-
-    if ! [[ $(sudo systemctl status cups.service | grep -w active) ]]; then
-        install_if_not_exist cups
-        sudo systemctl enable cups.service
-        sudo systemctl start cups.service
-    fi
-
-    install_if_not_exist printer-driver-all
-    install_if_not_exist hp-ppd
-    # install_if_not_exist hplip
-
-    install_if_not_exist printer-driver-cups-pdf
-    install_if_not_exist ghostscript
-    sudo systemctl restart cups.service
-    sudo systemctl unmask cups.service
-
-    echo
-    echo -e "$BLUE [ INFO ] $NC Installing packages for Bluetooth (TODO)"
-    echo
-
-    if [[ $(dmesg |grep Bluetooth) ]]; then
-        echo
-        echo -e "$BLUE [ INFO ] $NC Bluetooth detected"
-        echo
-        # install_if_not_exist bluez
-        # install_if_not_exist blueman
-        # sudo systemctl enable bluetooth.service
-        # sudo systemctl start bluetooth.service
-        # rfkill # Check status
-        # rfkill unblock bluetooth
-    fi
-
-
-    echo
-    echo -e "$BLUE [ INFO ] $NC Development tools installation"
-    echo
-
-    install_if_not_exist curl
-    install_if_not_exist apt-transport-https
-    install_if_not_exist build-essential
-    install_if_not_exist cmake
-    install_if_not_exist dkms
-    install_if_not_exist stow
-    # install_if_not_exist linux-headers-$(uname -r)
-    install_if_not_exist git
-    install_if_not_exist nano
-    # install_if_not_exist neofetch # TODO
-    install_if_not_exist uuid-runtime
-    install_if_not_exist ruby-full
-    install_if_not_exist dpkg-dev
-    install_if_not_exist debhelper
-    install_if_not_exist python3-venv
-
-    # vim
-    sudo apt purge vim-tiny vim && sudo apt install vim-nox
-
-    echo
-    echo -e "$BLUE [ INFO ] $NC Some tools installation"
-    echo
-
-    # Rootkit detector
-    install_if_not_exist chkrootkit
-    # install_if_not_exist rkhunter
-    # install_if_not_exist clamav
-
-    # System monitor
-    install_if_not_exist htop
-    # install_if_not_exist bashtop
-    # install_if_not_exist btop
-    # install_if_not_exist conky
-
-    # Network monitor
-    install_if_not_exist iftop
-    # install_if_not_exist bmon
-    # install_if_not_exist slurm
-    # install_if_not_exist tcptrack
-    # install_if_not_exist vnstat
-
-    # Package manager / Graphical package manager
-    # install_if_not_exist nala
-    # install_if_not_exist synaptic
-
-    # File manager
-    # install_if_not_exist ranger
-
-    # Disk Usage
-    install_if_not_exist ncdu
-
-    # Archive manager / Console Compression Tools
-    install_if_not_exist rar
-    install_if_not_exist unrar
-    # install_if_not_exist unrar-free
-    install_if_not_exist zip
-    install_if_not_exist unzip
-    install_if_not_exist p7zip
-    install_if_not_exist lzop
-
-    # Other tools
-    install_if_not_exist tree
-    install_if_not_exist exa
-    install_if_not_exist bat
-    # install_if_not_exist rofi
-    # install_if_not_exist tmux
-    # install_if_not_exist putty
-    # install_if_not_exist fzf
-    # install_if_not_exist fd-find
-    # install_if_not_exist ripgrep
-
-    echo
-    echo -e "$BLUE [ INFO ] $NC Some apps installation"
-    echo
-
-    install_if_not_exist timeshift # Timeshift
-    install_if_not_exist file-roller # GNOME File Roller
-    install_if_not_exist gnome-disks # GNOME Disks
-    # install_if_not_exist gparted # GNOME partition editor
-    # install_if_not_exist simple-scan # GNOME Document Scanner
-    install_if_not_exist virt-manager # Virtual Machine Manager
-    install_if_not_exist liferea # RSS Readers
-    # install_if_not_exist newsboat # CLI RSS Readers
-    # install_if_not_exist thunderbird # E-Mails application
-    # install_if_not_exist libreoffice # LibreOffice
-    # install_if_not_exist transmission-gtk # Transmission
-    # install_if_not_exist mintstick
-    # install_if_not_exist xed # xed Text Editor
-    install_if_not_exist gimp
-    install_if_not_exist inkscape
-    install_if_not_exist chromium
-    install_if_not_exist f3d # 3D viewer
-    # install_if_not_exist kazam # screencast and screenshot
-
-    # Just for fun
-    # install_if_not_exist fortune
-    # install_if_not_exist cowsay
-    # install_if_not_exist hollywood
-    # install_if_not_exist cmatrix
-
-    echo
-    echo -e "$BLUE [ INFO ] $NC Fonts installation"
-    echo
-
-    # Fonts
-    install_if_not_exist fonts-hack-ttf
-    # install_if_not_exist fonts-firacode
-    install_if_not_exist fonts-dejavu
-    install_if_not_exist fonts-inconsolata
-    install_if_not_exist ttf-mscorefonts-installer
-    install_if_not_exist fonts-ubuntu
-    # install_if_not_exist fonts-roboto
-    # install_if_not_exist fonts-terminus
-    # install_if_not_exist fonts-crosextra-caladea
-    # install_if_not_exist fonts-crosextra-carlito
-    # install_if_not_exist fonts-wine # ??
-    # install_if_not_exist fonts-freefont-ttf
-
-
-    echo
-    echo -e "$BLUE [ INFO ] $NC ZSH and ZSH plugins installation"
-    echo
-
-    install_if_not_exist zsh
-    install_if_not_exist zsh-syntax-highlighting
-    install_if_not_exist zsh-autosuggestions
-
-    # spaceship-prompt installation
-    mkdir -p "$HOME/.zsh"
-    if [ ! -d "$HOME/.zsh/spaceship" ]; then
-        git clone --depth=1 https://github.com/spaceship-prompt/spaceship-prompt.git "$HOME/.zsh/spaceship"
-    fi
-
-    # zsh-shift-select plugin installation
-    if [ ! -d "$HOME/.zsh/zsh-shift-select" ]; then
-        git clone https://github.com/jirutka/zsh-shift-select "$HOME/.zsh/zsh-shift-select"
-    fi
-
-    if ! [ -n "$ZSH_VERSION" ]; then
-        echo -e "$GREEN [ INFO ] $NC Setting zsh as default"
-        chsh -s $(which zsh)
-    fi
-
-    # NeoVIM
-    # xclip (X11) or wl-clipboard (Wayland)
-
-    sudo apt autoclean -y && sudo apt autoremove -y
-
-elif [[ $(command -v packman) ]]; then
-    echo
-    echo -e "$BLUE [ INFO ] $NC packman detected"
-    echo
-    exit 1
+    # Update a Packages
+    sudo pacman -Syu
 else
-    echo -e "$RED [ ERROR ] $NC Script only supports APT!"
+    echo -e "$RED [ ERROR ] $NC Script designed for APT or pacman."
     echo
     exit 1
 fi
+
+################################################################################
+
+# echo
+# echo -e "$BLUE [ INFO ] $NC Creating groups"
+# echo
+
+# # Add User to Group
+# sudo usermod -aG audio $USER
+# # Arduino
+# # sudo groupadd plugdev
+# sudo groupadd dialout
+# # sudo usermod -aG tty $USER
+# sudo usermod -aG dialout $USER
+# # sudo usermod -aG uucp $USER
+# # sudo usermod -aG plugdev $USER
+
+
+
+################################################################################
+
+# echo
+# echo -e "$BLUE [ INFO ] $NC Swappiness settings"
+# echo
+
+# SWAP_TOTAL=$(grep SwapTotal /proc/meminfo | awk '{print $2}')
+# RAM_TOTAL=$(grep MemTotal /proc/meminfo | awk '{print $2}')
+# if [ "$RAM_TOTAL" -gt "$SWAP_TOTAL" ]; then
+
+#     echo
+#     echo -e "$BLUE [ INFO ] $NC Disable Suspend and Hibernation"
+#     echo
+
+#     # sudo systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target
+#     if [[ $(sudo systemctl status hibernate.target | grep -w loaded) ]]; then
+#         sudo systemctl mask hibernate.target
+#     fi
+#     if [[ $(sudo systemctl status hybrid-sleep.target | grep -w loaded) ]]; then
+#         sudo systemctl mask hybrid-sleep.target
+#     fi
+# fi
+
+# # cat /proc/sys/vm/swappiness # Check system swappiness value
+# sudo sysctl -w vm.swappiness=10
+
+################################################################################
+
+echo
+echo -e "$BLUE [ INFO ] $NC Creating user dirs"
+echo
+
+install_if_not_exist xdg-user-dirs
+xdg-user-dirs-update
+
+mkdir ~/.local/bin
+mkdir ~/.local/share/themes
+mkdir ~/.local/share/icons
+mkdir ~/.local/share/fonts
+mkdir ~/Documents/GitHub
+
+################################################################################
+
+# echo
+# echo -e "$BLUE [ INFO ] $NC Removing unneeded packages"
+# echo
+
+# sudo apt remove gnome-games cheese gnome-sound-recorder gnote yelp pidgin brasero sound-juicer malcontent gnome-contacts evolution gnome-maps gnome-weather xsane xfce4-goodies hv3 exfalso thunderbird*
+
+
+################################################################################
+echo
+echo -e "$BLUE [ INFO ] $NC Installing some drivers"
+echo
+
+# microcode firmware
+if [[ $(lscpu | grep Intel) ]]; then
+    install_if_not_exist intel-microcode
+elif [[ $(lscpu | grep AMD) ]]; then
+    install_if_not_exist amd64-microcode
+fi
+
+# NVIDIA drivers
+# install_if_not_exist nvidia-driver
+
+# AMD drivers
+# install_if_not_exist firmware-linux
+# install_if_not_exist firmware-linux-nonfree
+# install_if_not_exist libdrm-amdgpu1
+# install_if_not_exist xserver-xorg-video-amdgpu
+
+# Vulkan
+# install_if_not_exist libvulkan1
+# install_if_not_exist mesa-vulkan-drivers
+# install_if_not_exist vulkan-utils
+# install_if_not_exist vulkan-tools
+# install_if_not_exist vulkan-validationlayers
+
+################################################################################
+echo
+echo -e "$BLUE [ INFO ] $NC Installing and configuring a firewall"
+echo
+
+# https://christitus.com/linux-security-mistakes/
+if ! [[ $(sudo ufw status | grep -w active) ]]; then
+    # install_if_not_exist ufw
+    install_if_not_exist gufw # ufw GUI
+    sudo ufw enable
+    sudo ufw default deny incoming
+    sudo ufw default allow outgoing
+    # sudo ufw allow ssh
+fi
+
+################################################################################
+
+# Battery life
+# install_if_not_exist powertop
+# install_if_not_exist tlp
+
+################################################################################
+
+echo
+echo -e "$BLUE [ INFO ] $NC Installing packages for printers / scanners"
+echo
+
+# Printers
+install_if_not_exist system-config-printer
+
+if ! [[ $(sudo systemctl status cups.service | grep -w active) ]]; then
+    install_if_not_exist cups
+    sudo systemctl enable cups.service
+    sudo systemctl start cups.service
+fi
+
+# install_if_not_exist printer-driver-all
+# install_if_not_exist hp-ppd
+# # install_if_not_exist hplip
+
+# install_if_not_exist printer-driver-cups-pdf
+# install_if_not_exist ghostscript
+# sudo systemctl restart cups.service
+# sudo systemctl unmask cups.service
+
+# Scanners
+install_if_not_exist simple-scan # GNOME Document Scanner
+install_if_not_exist sane-airscan
+if ! [[ $(sudo systemctl status saned.socket | grep -w active) ]]; then
+    sudo systemctl enable saned.socket
+    sudo systemctl start saned.socket
+fi
+
+################################################################################
+
+echo
+echo -e "$BLUE [ INFO ] $NC Installing packages for Bluetooth (TODO)"
+echo
+
+if ! [[ $(sudo systemctl status bluetooth.service | grep -w active) ]]; then
+    install_if_not_exist blueman
+    sudo systemctl enable bluetooth.service
+    sudo systemctl start bluetooth.service
+fi
+
+################################################################################
+
+echo
+echo -e "$BLUE [ INFO ] $NC Development tools installation"
+echo
+
+if [[ $(command -v apt) ]]; then
+    install_if_not_exist build-essential
+else
+    install_if_not_exist man-db
+    install_if_not_exist base-devel
+fi
+install_if_not_exist wget
+install_if_not_exist curl
+install_if_not_exist build-essential
+install_if_not_exist stow
+install_if_not_exist git
+# install_if_not_exist jq
+# sudo pacman -S dkms
+# sudo pacman -S cmake
+
+
+# if [[ $(command -v apt) ]]; then
+#     install_if_not_exist python3-venv
+# else
+#     install_if_not_exist python-virtualenv
+# fi
+if [[ $(command -v apt) ]]; then
+    install_if_not_exist ruby-full
+else
+    install_if_not_exist ruby
+fi
+if [[ $(command -v apt) ]]; then
+    echo -e "$RED [ ERROR ] $NC Install 'nvm' manually."
+else
+    # nvm # AUR (TODO)
+fi
+if [[ $(command -v apt) ]]; then
+    echo -e "$RED [ ERROR ] $NC Install 'rust' manually."
+else
+    install_if_not_exist rust
+fi
+
+################################################################################
+
+# Text Editors
+install_if_not_exist nano
+if [[ $(command -v apt) ]]; then
+    sudo apt purge vim-tiny vim && sudo apt install vim-nox
+else
+    install_if_not_exist vim
+fi
+
+# Neovim
+if [[ $(command -v apt) ]]; then
+    rm -f ~/.local/bin/nvim.appimage ~/.local/bin/nvim
+    curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
+    mv nvim.appimage ~/.local/bin/nvim.appimage
+    chmod u+x ~/.local/bin/nvim.appimage
+    ln -s ~/.local/bin/nvim.appimage ~/.local/bin/nvim
+else
+    install_if_not_exist neovim
+    # install_if_not_exist neovide # neovim GUI
+fi
+if [[ "$XDG_SESSION_TYPE" == "x11" ]]; then
+    install_if_not_exist xclip
+else
+    install_if_not_exist wl-clipboard
+fi
+
+################################################################################
+
+echo
+echo -e "$BLUE [ INFO ] $NC Some CLI tools installation"
+echo
+
+# Rootkit detector
+install_if_not_exist chkrootkit
+# install_if_not_exist rkhunter
+# install_if_not_exist clamav
+
+# System information tools
+if [[ $(command -v pacman) ]]; then install_if_not_exist fastfetch; fi
+# install_if_not_exist macchina
+# install_if_not_exist neofetch # (Depressed)
+# install_if_not_exist conky
+
+# System monitor
+install_if_not_exist htop
+# install_if_not_exist btop
+
+# Network monitor
+install_if_not_exist iftop
+# install_if_not_exist bmon
+# install_if_not_exist slurm
+# install_if_not_exist tcptrack
+# install_if_not_exist vnstat
+
+# File manager
+# install_if_not_exist ranger
+
+# Disk Usage
+install_if_not_exist ncdu
+
+# Archive manager / Console Compression Tools (TODO)
+install_if_not_exist file-roller # GNOME File Roller
+# install_if_not_exist rar
+# install_if_not_exist unrar
+# # install_if_not_exist unrar-free
+install_if_not_exist zip
+install_if_not_exist unzip
+# install_if_not_exist p7zip
+# install_if_not_exist lzop
+
+# Other tools
+install_if_not_exist tree
+# install_if_not_exist eza # ls` replacement
+# install_if_not_exist exa # ls` replacement (Depressed)
+install_if_not_exist bat # `cat` replacement
+
+# install_if_not_exist rofi
+# install_if_not_exist tmux
+# install_if_not_exist putty (???)
+# install_if_not_exist fzf
+# install_if_not_exist fd-find (???)
+# install_if_not_exist ripgrep
+
+################################################################################
+
+echo
+echo -e "$BLUE [ INFO ] $NC Some apps installation"
+echo
+
+if [[ $(command -v apt) ]]; then
+    echo -e "$RED [ ERROR ] $NC Install 'alacritty' manually."
+else
+    install_if_not_exist alacritty
+fi
+install_if_not_exist timeshift # Timeshift
+install_if_not_exist transmission-gtk # Transmission
+# install_if_not_exist gnome-disks # GNOME Disks
+# install_if_not_exist gparted # GNOME partition editor
+# install_if_not_exist mintstick
+# install_if_not_exist xreader # ???
+# install_if_not_exist xviewer # ???
+# install_if_not_exist chromium
+
+install_if_not_exist virt-manager # Virtual Machine Manager
+
+install_if_not_exist liferea # RSS Readers
+# install_if_not_exist newsboat # CLI RSS Readers
+
+if [[ $(command -v apt) ]]; then
+    install_if_not_exist libreoffice
+else
+    install_if_not_exist libreoffice-fresh
+fi
+install_if_not_exist gimp
+install_if_not_exist inkscape
+# install_if_not_exist vlc
+if [[ $(command -v apt) ]]; then
+    echo -e "$RED [ ERROR ] $NC Install 'blender' manually."
+else
+    install_if_not_exist blender
+fi
+
+# install_if_not_exist f3d # 3D viewer
+# install_if_not_exist kazam # screencast and screenshot
+
+# Just for fun
+# install_if_not_exist fortune
+# install_if_not_exist cowsay
+# install_if_not_exist hollywood
+# install_if_not_exist cmatrix
+
+################################################################################
+
+echo
+echo -e "$BLUE [ INFO ] $NC Fonts installation"
+echo
+
+if [[ $(command -v apt) ]]; then
+    wget https://github.com/ryanoasis/nerd-fonts/releases/download/v3.2.1/Hack.zip -P ~/.local/share/fonts
+    unzip ~/.local/share/fonts/Hack.zip -d ~/.local/share/fonts
+
+    install_if_not_exist fonts-hack-ttf
+    # install_if_not_exist fonts-firacode
+    install_if_not_exist fonts-dejavu
+    # install_if_not_exist fonts-inconsolata
+    install_if_not_exist fonts-ubuntu
+    # install_if_not_exist fonts-roboto
+    # install_if_not_exist fonts-terminus
+    install_if_not_exist fonts-freefont-ttf
+
+    # install_if_not_exist ttf-mscorefonts-installer
+else
+    # install_if_not_exist nerd-fonts
+    install_if_not_exist ttf-hack-nerd
+    # install_if_not_exist ttf-hack
+    # install_if_not_exist ttf-firacode-nerd
+    install_if_not_exist ttf-dejavu
+    # install_if_not_exist ttf-inconsolata-nerd
+    # install_if_not_exist ttf-inconsolata
+    install_if_not_exist ttf-ubuntu-font-family
+    # install_if_not_exist ttf-roboto
+    # install_if_not_exist ttf-terminus-nerd
+    install_if_not_exist gnu-free-fonts
+
+    # ttf-ms-win10-auto # AUR (TODO)
+    # ttf-ms-win11-auto # AUR (TODO)
+fi
+
+
+
+################################################################################
+
+echo
+echo -e "$BLUE [ INFO ] $NC ZSH and ZSH plugins installation"
+echo
+
+install_if_not_exist zsh
+install_if_not_exist zsh-syntax-highlighting
+install_if_not_exist zsh-autosuggestions
+
+
+# zsh-shift-select plugin installation
+# if [ ! -d "$HOME/.zsh/zsh-shift-select" ]; then
+#     git clone https://github.com/jirutka/zsh-shift-select "$HOME/.zsh/zsh-shift-select"
+# fi
+
+if ! [ -n "$ZSH_VERSION" ]; then
+    echo -e "$GREEN [ INFO ] $NC Setting zsh as default"
+    chsh -s $(which zsh)
+fi
+
+# starship prompt installation
+if [[ $(command -v apt) ]]; then
+    if ! [[ $(command -v starship) ]]; then
+        curl -sS https://starship.rs/install.sh > starship_install.sh && sh starship_install.sh -b ~/.local/bin && rm -f starship_install.sh
+    fi
+else
+    install_if_not_exist starship
+fi
+
+# sudo apt autoclean -y && sudo apt autoremove -y
+
+
+
 
 if [ $XDG_CURRENT_DESKTOP = "XFCE" ]; then
     echo
@@ -504,28 +603,19 @@ if [ $XDG_CURRENT_DESKTOP = "XFCE" ]; then
     xfconf-query -c xsettings -p "/Gtk/ButtonImages" -s false
     xfconf-query -c xsettings -p "/Gtk/DialogsUseHeader" -s true
     xfconf-query -c xsettings -p "/Gtk/MenuImages" -s false
-
-elif [ $XDG_CURRENT_DESKTOP = "GNOME" ]; then
-    echo
-    echo -e "$BLUE [ INFO ] $NC GNOME detected"
-    echo -e "$GREEN [ INFO ] $NC Starting GNOME configurations..."
-    echo -e "$RED [ ERROR ] $NC GNOME not supported :("
-    echo
-    # install_if_not_exist gnome-tweak-tool
-    # install_if_not_exist chrome-gnome-shell
 else
     echo -e "$RED [ ERROR ] $NC Script only supports XFCE!"
     echo
 fi
 
 
-echo
-echo -e "$BLUE [ INFO ] $NC Downloading and installing dotfiles"
-echo
+# echo
+# echo -e "$BLUE [ INFO ] $NC Downloading and installing dotfiles"
+# echo
 
-mkdir -p "$HOME/Documents/GitHub"
-if [ ! -d "$HOME/Documents/GitHub/dotfiles" ]; then
-    git clone https://github.com/vec2pt/dotfiles.git "$HOME/Documents/GitHub/dotfiles"
-    bash "$HOME/Documents/GitHub/dotfiles/install.sh"
-    source $HOME/.bashrc
-fi
+# mkdir -p "$HOME/Documents/GitHub"
+# if [ ! -d "$HOME/Documents/GitHub/dotfiles" ]; then
+#     git clone https://github.com/vec2pt/dotfiles.git "$HOME/Documents/GitHub/dotfiles"
+#     bash "$HOME/Documents/GitHub/dotfiles/install.sh"
+#     source $HOME/.bashrc
+# fi
