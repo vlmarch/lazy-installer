@@ -613,13 +613,12 @@ else
 fi
 
 
-# echo
-# echo -e "$BLUE [ INFO ] $NC Downloading and installing dotfiles"
-# echo
+echo
+echo -e "$BLUE [ INFO ] $NC Downloading and installing dotfiles"
+echo
 
-# mkdir -p "$HOME/Documents/GitHub"
-# if [ ! -d "$HOME/Documents/GitHub/dotfiles" ]; then
-#     git clone https://github.com/vec2pt/dotfiles.git "$HOME/Documents/GitHub/dotfiles"
-#     bash "$HOME/Documents/GitHub/dotfiles/install.sh"
-#     source $HOME/.bashrc
-# fi
+if [ ! -d "$HOME/Documents/GitHub/dotfiles" ]; then
+    git clone https://github.com/vec2pt/dotfiles.git "$HOME/Documents/GitHub/dotfiles"
+    cd "$HOME/Documents/GitHub/dotfiles"
+    stow -t $HOME zsh git starship
+fi
