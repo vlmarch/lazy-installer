@@ -221,7 +221,7 @@ fi
 ################################################################################
 
 echo
-echo -e "$BLUE [ INFO ] $NC Installing packages for Bluetooth (TODO)"
+echo -e "$BLUE [ INFO ] $NC Installing packages for Bluetooth"
 echo
 
 if ! [[ $(sudo systemctl status bluetooth.service | grep -w active) ]]; then
@@ -454,7 +454,7 @@ install_if_not_exist zsh
 install_if_not_exist zsh-syntax-highlighting
 install_if_not_exist zsh-autosuggestions
 
-
+# TODO
 # zsh-shift-select plugin installation
 # if [ ! -d "$HOME/.zsh/zsh-shift-select" ]; then
 #     git clone https://github.com/jirutka/zsh-shift-select "$HOME/.zsh/zsh-shift-select"
