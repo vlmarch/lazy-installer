@@ -27,7 +27,6 @@ function install_if_not_exist() {
     fi
 }
 
-
 # ------------------------------------------------------------------------------
 
 echo
@@ -85,8 +84,6 @@ fi
 # # sudo usermod -aG uucp $USER
 # # sudo usermod -aG plugdev $USER
 
-
-
 ################################################################################
 
 # echo
@@ -135,7 +132,6 @@ mkdir ~/Documents/GitHub
 # echo
 
 # sudo apt remove gnome-games cheese gnome-sound-recorder gnote yelp pidgin brasero sound-juicer malcontent gnome-contacts evolution gnome-maps gnome-weather xsane xfce4-goodies hv3 exfalso thunderbird*
-
 
 ################################################################################
 echo
@@ -251,22 +247,36 @@ install_if_not_exist git
 # sudo pacman -S dkms
 # sudo pacman -S cmake
 
-
+# Python
 # if [[ $(command -v apt) ]]; then
 #     install_if_not_exist python3-venv
 # else
 #     install_if_not_exist python-virtualenv
 # fi
+
+# Lua
+install_if_not_exist luarocks
+# if [[ $(command -v apt) ]]; then
+#     install_if_not_exist lua5.4
+# else
+#     install_if_not_exist lua
+# fi
+
+# Ruby
 if [[ $(command -v apt) ]]; then
     install_if_not_exist ruby-full
 else
     install_if_not_exist ruby
 fi
+
+# Node.js (nvm)
 if [[ $(command -v apt) ]]; then
     echo -e "$RED [ ERROR ] $NC Install 'nvm' manually."
 else
     # nvm # AUR (TODO)
 fi
+
+# Rust
 if [[ $(command -v apt) ]]; then
     echo -e "$RED [ ERROR ] $NC Install 'rust' manually."
 else
@@ -372,7 +382,7 @@ if [[ $(command -v apt) ]]; then
 else
     install_if_not_exist alacritty
 fi
-install_if_not_exist timeshift # Timeshift
+install_if_not_exist timeshift        # Timeshift
 install_if_not_exist transmission-gtk # Transmission
 # install_if_not_exist gnome-disks # GNOME Disks
 # install_if_not_exist gparted # GNOME partition editor
@@ -446,8 +456,6 @@ else
     # ttf-ms-win11-auto # AUR (TODO)
 fi
 
-
-
 ################################################################################
 
 echo
@@ -472,16 +480,13 @@ fi
 # starship prompt installation
 if [[ $(command -v apt) ]]; then
     if ! [[ $(command -v starship) ]]; then
-        curl -sS https://starship.rs/install.sh > starship_install.sh && sh starship_install.sh -b ~/.local/bin && rm -f starship_install.sh
+        curl -sS https://starship.rs/install.sh >starship_install.sh && sh starship_install.sh -b ~/.local/bin && rm -f starship_install.sh
     fi
 else
     install_if_not_exist starship
 fi
 
 # sudo apt autoclean -y && sudo apt autoremove -y
-
-
-
 
 if [ $XDG_CURRENT_DESKTOP = "XFCE" ]; then
     echo
@@ -528,7 +533,6 @@ if [ $XDG_CURRENT_DESKTOP = "XFCE" ]; then
     xfconf-query -c xfce4-desktop -p "/desktop-icons/use-custom-font-size" -n -t bool -s true
     xfconf-query -c xfce4-desktop -p "/desktop-icons/font-size" -n -t int -s 9
 
-
     # xfce4-keyboard-shortcuts
     # Create commands
     xfconf-query -c xfce4-keyboard-shortcuts -p "/commands/custom/override" -s true
@@ -542,8 +546,7 @@ if [ $XDG_CURRENT_DESKTOP = "XFCE" ]; then
     xfconf-query -c xfce4-keyboard-shortcuts -p "/commands/custom/<Primary>space" -n -t string -s "rofi -show drun"
 
     # Reset default shortcuts
-    for property in $(xfconf-query -c xfce4-keyboard-shortcuts -p "/xfwm4/custom" -l)
-    do xfconf-query -c xfce4-keyboard-shortcuts -p $property -r; done
+    for property in $(xfconf-query -c xfce4-keyboard-shortcuts -p "/xfwm4/custom" -l); do xfconf-query -c xfce4-keyboard-shortcuts -p $property -r; done
 
     # Create shortcuts
     xfconf-query -c xfce4-keyboard-shortcuts -p "/xfwm4/custom/override" -n -t bool -s true
@@ -592,7 +595,6 @@ if [ $XDG_CURRENT_DESKTOP = "XFCE" ]; then
     xfconf-query -c xfce4-keyboard-shortcuts -p "/xfwm4/custom/<Alt>F11" -n -t string -s "fullscreen_key"
     xfconf-query -c xfce4-keyboard-shortcuts -p "/xfwm4/custom/<Alt>F12" -n -t string -s "above_key"
 
-
     # xfce4-panel
     xfconf-query -c xfce4-panel -p "/panels/dark-mode" -n -t bool -s true
 
@@ -611,7 +613,6 @@ else
     echo -e "$RED [ ERROR ] $NC Script only supports XFCE!"
     echo
 fi
-
 
 echo
 echo -e "$BLUE [ INFO ] $NC Downloading and installing dotfiles"
