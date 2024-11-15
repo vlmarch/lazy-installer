@@ -10,24 +10,7 @@ BLUE='\033[0;34m'
 
 # Functions
 
-function install_if_not_exist() {
-    # TODO test it for pacman
-    if dpkg -s "$1" &>/dev/null; then
-        PKG_EXIST=$(dpkg -s "$1" | grep "install ok installed")
-        if [[ -n "$PKG_EXIST" ]]; then
-            echo -e "$GREEN [ INFO ] $NC $1 - is already installed."
-            return
-        fi
-    fi
-    echo -e "$YELLOW [ INFO ] $NC $1 - installation..."
-    if [[ $(command -v apt) ]]; then
-        sudo apt --install-suggests --install-recommends install "$1" -y
-    elif [[ $(command -v pacman) ]]; then
-        sudo pacman -S "$1"
-    fi
-}
-
-# ------------------------------------------------------------------------------
+################################################################################
 
 echo
 echo '     __                         _            __        ____          '
@@ -39,6 +22,8 @@ echo '                   /____/                                            '
 echo
 sudo echo # sudo Permissions
 
+################################################################################
+
 # Check operating system
 if [ "$(uname)" != "Linux" ]; then
     echo -e "$RED [ ERROR ] $NC Script designed for Linux."
@@ -46,27 +31,32 @@ if [ "$(uname)" != "Linux" ]; then
     exit 1
 fi
 
+################################################################################
+
 # Checking the packege manager
 if [[ $(command -v apt) ]]; then
-    echo
-    echo -e "$BLUE [ INFO ] $NC APT detected"
-    echo
     sudo apt update && sudo apt upgrade -y
     # sudo apt autoremove && sudo apt clean
+    pkg_manager=apt
 elif [[ $(command -v pacman) ]]; then
-    echo
-    echo -e "$BLUE [ INFO ] $NC pacman detected"
-    echo
-    # Refresh Package Lists
-    sudo pacman -Sy
-
-    # Update a Packages
     sudo pacman -Syu
+    pkg_manager=pacman
 else
     echo -e "$RED [ ERROR ] $NC Script designed for APT or pacman."
     echo
     exit 1
 fi
+
+
+function install_pkgs(){
+    if [ $pkg_manager = "apt" ]; then
+        sudo apt install -y "$@"
+        # sudo apt --install-suggests --install-recommends install -y "$@"
+    elif [ $pkg_manager = "pacman" ]; then
+        echo "$2[@]"
+        sudo pacman -S --needed "$@"
+    fi
+}
 
 ################################################################################
 
@@ -116,7 +106,7 @@ echo
 echo -e "$BLUE [ INFO ] $NC Creating user dirs"
 echo
 
-install_if_not_exist xdg-user-dirs
+install_pkgs xdg-user-dirs
 xdg-user-dirs-update
 
 mkdir ~/.local/bin
@@ -140,9 +130,9 @@ echo
 
 # microcode firmware
 if [[ $(lscpu | grep Intel) ]]; then
-    install_if_not_exist intel-microcode
+    install_pkgs intel-microcode
 elif [[ $(lscpu | grep AMD) ]]; then
-    install_if_not_exist amd64-microcode
+    install_pkgs amd64-microcode
 fi
 
 # NVIDIA drivers
@@ -167,9 +157,8 @@ echo -e "$BLUE [ INFO ] $NC Installing and configuring a firewall"
 echo
 
 # https://christitus.com/linux-security-mistakes/
-if ! [[ $(sudo ufw status | grep -w active) ]]; then
-    # install_if_not_exist ufw
-    install_if_not_exist gufw # ufw GUI
+if ! [[ $(sudo systemctl status ufw | grep -w active) ]]; then
+    install_pkgs gufw ufw
     sudo ufw enable
     sudo ufw default deny incoming
     sudo ufw default allow outgoing
@@ -181,6 +170,12 @@ fi
 # Battery life
 # install_if_not_exist powertop
 # install_if_not_exist tlp
+################################################################################
+
+# Audio (TODO for Debian)
+if [ $pkg_manager = "pacman" ]; then
+    install_pkgs pipewire pipewire-alsa pipewire-jack pipewire-pulse wireplumber
+fi
 
 ################################################################################
 
@@ -189,27 +184,23 @@ echo -e "$BLUE [ INFO ] $NC Installing packages for printers / scanners"
 echo
 
 # Printers
-install_if_not_exist system-config-printer
-
 if ! [[ $(sudo systemctl status cups.service | grep -w active) ]]; then
-    install_if_not_exist cups
+    install_pkgs system-config-printer cups
+    # install_pkgs printer-driver-all
+    # install_pkgs hp-ppd
+    # # install_pkgs hplip
+
+    # install_pkgs printer-driver-cups-pdf
+    # install_pkgs ghostscript
     sudo systemctl enable cups.service
     sudo systemctl start cups.service
 fi
 
-# install_if_not_exist printer-driver-all
-# install_if_not_exist hp-ppd
-# # install_if_not_exist hplip
-
-# install_if_not_exist printer-driver-cups-pdf
-# install_if_not_exist ghostscript
-# sudo systemctl restart cups.service
-# sudo systemctl unmask cups.service
 
 # Scanners
-install_if_not_exist simple-scan # GNOME Document Scanner
-install_if_not_exist sane-airscan
 if ! [[ $(sudo systemctl status saned.socket | grep -w active) ]]; then
+    install_pkgs simple-scan # GNOME Document Scanner
+    install_pkgs sane-airscan
     sudo systemctl enable saned.socket
     sudo systemctl start saned.socket
 fi
@@ -221,7 +212,7 @@ echo -e "$BLUE [ INFO ] $NC Installing packages for Bluetooth"
 echo
 
 if ! [[ $(sudo systemctl status bluetooth.service | grep -w active) ]]; then
-    install_if_not_exist blueman
+    install_pkgs blueman
     sudo systemctl enable bluetooth.service
     sudo systemctl start bluetooth.service
 fi
@@ -232,65 +223,57 @@ echo
 echo -e "$BLUE [ INFO ] $NC Development tools installation"
 echo
 
-if [[ $(command -v apt) ]]; then
-    install_if_not_exist build-essential
-else
-    install_if_not_exist man-db
-    install_if_not_exist base-devel
+if [ $pkg_manager = "apt" ]; then
+    install_pkgs build-essential
+elif [ $pkg_manager = "pacman" ]; then
+    install_pkgs man-db base-devel
 fi
-install_if_not_exist wget
-install_if_not_exist curl
-install_if_not_exist build-essential
-install_if_not_exist stow
-install_if_not_exist git
-# install_if_not_exist jq
-# sudo pacman -S dkms
-# sudo pacman -S cmake
+install_pkgs wget curl stow git # jq
+
 
 # Python
-# if [[ $(command -v apt) ]]; then
-#     install_if_not_exist python3-venv
-# else
-#     install_if_not_exist python-virtualenv
-# fi
+if [ $pkg_manager = "apt" ]; then
+    install_pkgs python3-venv
+elif [ $pkg_manager = "pacman" ]; then
+    install_pkgs python-virtualenv
+fi
 
 # Lua
-install_if_not_exist luarocks
-# if [[ $(command -v apt) ]]; then
-#     install_if_not_exist lua5.4
-# else
-#     install_if_not_exist lua
-# fi
+if [ $pkg_manager = "apt" ]; then
+    install_pkgs lua5.4 luarocks
+elif [ $pkg_manager = "pacman" ]; then
+    install_pkgs lua luarocks
+fi
 
 # Ruby
-if [[ $(command -v apt) ]]; then
-    install_if_not_exist ruby-full
-else
-    install_if_not_exist ruby
+if [ $pkg_manager = "apt" ]; then
+    install_pkgs ruby-full
+elif [ $pkg_manager = "pacman" ]; then
+    install_pkgs ruby
 fi
 
-# Node.js (nvm)
-if [[ $(command -v apt) ]]; then
-    echo -e "$RED [ ERROR ] $NC Install 'nvm' manually."
-else
-    # nvm # AUR (TODO)
-fi
+# Node.js (nvm) (TODO)
+# if [ $pkg_manager = "apt" ]; then
+#     echo -e "$RED [ ERROR ] $NC Install 'nvm' manually."
+# elif [ $pkg_manager = "pacman" ]; then
+#     # nvm # AUR (TODO)
+# fi
 
-# Rust
-if [[ $(command -v apt) ]]; then
-    echo -e "$RED [ ERROR ] $NC Install 'rust' manually."
-else
-    install_if_not_exist rust
-fi
+# Rust (TODO)
+# if [ $pkg_manager = "apt" ]; then
+#     echo -e "$RED [ ERROR ] $NC Install 'rust' manually."
+# elif [ $pkg_manager = "pacman" ]; then
+#     install_pkgs rust
+# fi
 
 ################################################################################
 
 # Text Editors
-install_if_not_exist nano
-if [[ $(command -v apt) ]]; then
+install_pkgs nano
+if [ $pkg_manager = "apt" ]; then
     sudo apt purge vim-tiny vim && sudo apt install vim-nox
-else
-    install_if_not_exist vim
+elif [ $pkg_manager = "pacman" ]; then
+    install_pkgs vim
 fi
 
 # Neovim
@@ -301,13 +284,12 @@ if [[ $(command -v apt) ]]; then
     chmod u+x ~/.local/bin/nvim.appimage
     ln -s ~/.local/bin/nvim.appimage ~/.local/bin/nvim
 else
-    install_if_not_exist neovim
-    # install_if_not_exist neovide # neovim GUI
+    install_pkgs neovim # neovide
 fi
 if [[ "$XDG_SESSION_TYPE" == "x11" ]]; then
-    install_if_not_exist xclip
+    install_pkgs xclip
 else
-    install_if_not_exist wl-clipboard
+    install_pkgs wl-clipboard
 fi
 
 ################################################################################
@@ -317,59 +299,43 @@ echo -e "$BLUE [ INFO ] $NC Some CLI tools installation"
 echo
 
 # Rootkit detector
-install_if_not_exist chkrootkit
-# install_if_not_exist rkhunter
-# install_if_not_exist clamav
+# install_pkgs chkrootkit # rkhunter clamav
 
 # System information tools
-if [[ $(command -v pacman) ]]; then install_if_not_exist fastfetch; fi
-# install_if_not_exist macchina
-# install_if_not_exist neofetch # (Depressed)
-# install_if_not_exist conky
+if [ $pkg_manager = "apt" ]; then
+    install_pkgs neofetch # (Depressed)
+elif [ $pkg_manager = "pacman" ]; then
+    install_pkgs fastfetch
+fi
 
 # System monitor
-install_if_not_exist htop
-# install_if_not_exist btop
+install_pkgs htop # btop
 
-# Network monitor
-install_if_not_exist iftop
-# install_if_not_exist bmon
-# install_if_not_exist slurm
-# install_if_not_exist tcptrack
-# install_if_not_exist vnstat
+# Network monitor (TODO)
+# install_pkgs iftop
+# install_pkgs bmon
+# install_pkgs slurm
+# install_pkgs tcptrack
+# install_pkgs vnstat
 
-# File manager
-# install_if_not_exist ranger
-
-# Disk Usage
-install_if_not_exist ncdu
+# Disk Usage (TODO)
+install_pkgs ncdu
 
 # Archive manager / Console Compression Tools (TODO)
-install_if_not_exist file-roller # GNOME File Roller
-# install_if_not_exist rar
-# install_if_not_exist unrar
-# # install_if_not_exist unrar-free
-install_if_not_exist zip
-install_if_not_exist unzip
-# install_if_not_exist p7zip
-# install_if_not_exist lzop
+install_pkgs file-roller # GNOME File Roller
+install_pkgs rar unrar unrar-free zip unzip p7zip # lzop
 
-# Other tools
-install_if_not_exist tree
-# install_if_not_exist eza # ls` replacement
-# install_if_not_exist exa # ls` replacement (Depressed)
-install_if_not_exist bat # `cat` replacement
-
-# install_if_not_exist rofi
-# install_if_not_exist tmux
-# install_if_not_exist putty (???)
-# install_if_not_exist fzf
+# Other tools (TODO)
+install_pkgs tree bat # eza
+# install_pkgs tmux
+# install_pkgs putty (???)
+# install_pkgs fzf
 # if [[ $(command -v apt) ]]; then
-#     install_if_not_exist fd-find
+#     install_pkgs fd-find
 # else
-#     install_if_not_exist fd
+#     install_pkgs fd
 # fi
-# install_if_not_exist ripgrep
+# install_pkgs ripgrep
 
 ################################################################################
 
@@ -380,44 +346,45 @@ echo
 if [[ $(command -v apt) ]]; then
     echo -e "$RED [ ERROR ] $NC Install 'alacritty' manually."
 else
-    install_if_not_exist alacritty
+    install_pkgs alacritty
 fi
-install_if_not_exist timeshift        # Timeshift
-install_if_not_exist transmission-gtk # Transmission
-# install_if_not_exist gnome-disks # GNOME Disks
-# install_if_not_exist gparted # GNOME partition editor
-# install_if_not_exist mintstick
-# install_if_not_exist xreader # ???
-# install_if_not_exist xviewer # ???
-# install_if_not_exist chromium
+install_pkgs timeshift        # Timeshift
+install_pkgs transmission-gtk # Transmission
+# install_pkgs rofi
+# install_pkgs gnome-disks # GNOME Disks
+# install_pkgs gparted # GNOME partition editor
+# install_pkgs mintstick
+# install_pkgs xreader # ???
+# install_pkgs xviewer # ???
+# install_pkgs chromium
 
-install_if_not_exist virt-manager # Virtual Machine Manager
+# install_pkgs virt-manager # Virtual Machine Manager
 
-install_if_not_exist liferea # RSS Readers
-# install_if_not_exist newsboat # CLI RSS Readers
+# install_pkgs liferea # RSS Readers
+# install_pkgs newsboat # CLI RSS Readers
 
-if [[ $(command -v apt) ]]; then
-    install_if_not_exist libreoffice
-else
-    install_if_not_exist libreoffice-fresh
+if [ $pkg_manager = "apt" ]; then
+    install_pkgs libreoffice
+elif [ $pkg_manager = "pacman" ]; then
+    install_pkgs libreoffice-fresh
 fi
-install_if_not_exist gimp
-install_if_not_exist inkscape
-# install_if_not_exist vlc
-if [[ $(command -v apt) ]]; then
+
+install_pkgs gimp inkscape
+
+if [ $pkg_manager = "apt" ]; then
     echo -e "$RED [ ERROR ] $NC Install 'blender' manually."
-else
-    install_if_not_exist blender
+elif [ $pkg_manager = "pacman" ]; then
+    install_pkgs blender
 fi
 
-# install_if_not_exist f3d # 3D viewer
-# install_if_not_exist kazam # screencast and screenshot
+# install_pkgs f3d # 3D viewer
+# install_pkgs kazam # screencast and screenshot
 
 # Just for fun
-# install_if_not_exist fortune
-# install_if_not_exist cowsay
-# install_if_not_exist hollywood
-# install_if_not_exist cmatrix
+# install_pkgs fortune
+# install_pkgs cowsay
+# install_pkgs hollywood
+# install_pkgs cmatrix
 
 ################################################################################
 
@@ -425,33 +392,16 @@ echo
 echo -e "$BLUE [ INFO ] $NC Fonts installation"
 echo
 
-if [[ $(command -v apt) ]]; then
+if [ $pkg_manager = "apt" ]; then
     wget https://github.com/ryanoasis/nerd-fonts/releases/download/v3.2.1/Hack.zip -P ~/.local/share/fonts
     unzip ~/.local/share/fonts/Hack.zip -d ~/.local/share/fonts
 
-    install_if_not_exist fonts-hack-ttf
-    # install_if_not_exist fonts-firacode
-    install_if_not_exist fonts-dejavu
-    # install_if_not_exist fonts-inconsolata
-    install_if_not_exist fonts-ubuntu
-    # install_if_not_exist fonts-roboto
-    # install_if_not_exist fonts-terminus
-    install_if_not_exist fonts-freefont-ttf
-
-    # install_if_not_exist ttf-mscorefonts-installer
-else
-    # install_if_not_exist nerd-fonts
-    install_if_not_exist ttf-hack-nerd
-    # install_if_not_exist ttf-hack
-    # install_if_not_exist ttf-firacode-nerd
-    install_if_not_exist ttf-dejavu
-    # install_if_not_exist ttf-inconsolata-nerd
-    # install_if_not_exist ttf-inconsolata
-    install_if_not_exist ttf-ubuntu-font-family
-    # install_if_not_exist ttf-roboto
-    # install_if_not_exist ttf-terminus-nerd
-    install_if_not_exist gnu-free-fonts
-
+    install_pkgs fonts-hack-ttf fonts-dejavu fonts-ubuntu fonts-freefont-ttf
+    # install_pkgs fonts-firacode fonts-inconsolata fonts-roboto fonts-terminus
+    # install_pkgs ttf-mscorefonts-installer
+elif [ $pkg_manager = "pacman" ]; then
+    install_pkgs ttf-hack-nerd ttf-dejavu ttf-ubuntu-font-family gnu-free-fonts
+    # install_pkgs nerd-fonts ttf-hack ttf-firacode-nerd ttf-inconsolata-nerd ttf-inconsolata ttf-roboto ttf-terminus-nerd
     # ttf-ms-win10-auto # AUR (TODO)
     # ttf-ms-win11-auto # AUR (TODO)
 fi
@@ -462,9 +412,7 @@ echo
 echo -e "$BLUE [ INFO ] $NC ZSH and ZSH plugins installation"
 echo
 
-install_if_not_exist zsh
-install_if_not_exist zsh-syntax-highlighting
-install_if_not_exist zsh-autosuggestions
+install_pkgs zsh zsh-syntax-highlighting zsh-autosuggestions
 
 # TODO
 # zsh-shift-select plugin installation
@@ -478,12 +426,12 @@ if ! [ -n "$ZSH_VERSION" ]; then
 fi
 
 # starship prompt installation
-if [[ $(command -v apt) ]]; then
+if [ $pkg_manager = "apt" ]; then
     if ! [[ $(command -v starship) ]]; then
-        curl -sS https://starship.rs/install.sh >starship_install.sh && sh starship_install.sh -b ~/.local/bin && rm -f starship_install.sh
+        curl -sS https://starship.rs/install.sh > starship_install.sh && sh starship_install.sh -b ~/.local/bin && rm -f starship_install.sh
     fi
-else
-    install_if_not_exist starship
+elif [ $pkg_manager = "pacman" ]; then
+    install_pkgs starship
 fi
 
 # sudo apt autoclean -y && sudo apt autoremove -y
