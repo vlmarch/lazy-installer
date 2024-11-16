@@ -123,6 +123,9 @@ mkdir ~/Documents/GitHub
 
 # sudo apt remove gnome-games cheese gnome-sound-recorder gnote yelp pidgin brasero sound-juicer malcontent gnome-contacts evolution gnome-maps gnome-weather xsane xfce4-goodies hv3 exfalso thunderbird*
 
+# Xfce Goodies
+# sudo pacman -Rcs xfburn xfce4-notes-plugin xfce4-dict xfce4-clipman-plugin xfce4-clipman-plugin xfce4-cpugraph-plugin xfce4-cpufreq-plugin xfce4-diskperf-plugin xfce4-eyes-plugin xfce4-fsguard-plugin xfce4-mailwatch-plugin xfce4-mount-plugin xfce4-netload-plugin xfce4-sensors-plugin xfce4-smartbookmark-plugin xfce4-systemload-plugin xfce4-timer-plugin xfce4-weather-plugin xfce4-time-out-plugin xfce4-genmon-plugin xfce4-mpc-plugin xfce4-verve-plugin
+
 ################################################################################
 echo
 echo -e "$BLUE [ INFO ] $NC Installing some drivers"
@@ -174,7 +177,7 @@ fi
 
 # Audio (TODO for Debian)
 if [ $pkg_manager = "pacman" ]; then
-    install_pkgs pipewire pipewire-alsa pipewire-jack pipewire-pulse wireplumber
+    install_pkgs pipewire pipewire-alsa pipewire-jack pipewire-pulse wireplumber # helvum
 fi
 
 ################################################################################
@@ -228,7 +231,7 @@ if [ $pkg_manager = "apt" ]; then
 elif [ $pkg_manager = "pacman" ]; then
     install_pkgs man-db base-devel
 fi
-install_pkgs wget curl stow git # jq
+install_pkgs wget curl stow git github-cli # jq
 
 
 # Python
@@ -259,12 +262,12 @@ fi
 #     # nvm # AUR (TODO)
 # fi
 
-# Rust (TODO)
-# if [ $pkg_manager = "apt" ]; then
-#     echo -e "$RED [ ERROR ] $NC Install 'rust' manually."
-# elif [ $pkg_manager = "pacman" ]; then
-#     install_pkgs rust
-# fi
+# Rust
+if [ $pkg_manager = "apt" ]; then
+    echo -e "$RED [ ERROR ] $NC Install 'rust' manually."
+elif [ $pkg_manager = "pacman" ]; then
+    install_pkgs rustup
+fi
 
 ################################################################################
 
@@ -322,8 +325,9 @@ install_pkgs htop # btop
 install_pkgs ncdu
 
 # Archive manager / Console Compression Tools (TODO)
-install_pkgs file-roller # GNOME File Roller
-install_pkgs rar unrar unrar-free zip unzip p7zip # lzop
+# install_pkgs file-roller # GNOME File Roller
+install_pkgs xarchiver
+install_pkgs unrar unrar-free zip unzip p7zip # lzop rar
 
 # Other tools (TODO)
 install_pkgs tree bat # eza
@@ -351,7 +355,7 @@ fi
 install_pkgs timeshift        # Timeshift
 install_pkgs transmission-gtk # Transmission
 # install_pkgs rofi
-# install_pkgs gnome-disks # GNOME Disks
+# install_pkgs gnome-disks # GNOME Disks gnome-disk-utility (arch)
 # install_pkgs gparted # GNOME partition editor
 # install_pkgs mintstick
 # install_pkgs xreader # ???
@@ -379,6 +383,9 @@ fi
 
 # install_pkgs f3d # 3D viewer
 # install_pkgs kazam # screencast and screenshot
+
+# Games
+# install_pkgs openal sdl2 # (blender Dependencies)
 
 # Just for fun
 # install_pkgs fortune
@@ -569,5 +576,5 @@ echo
 if [ ! -d "$HOME/Documents/GitHub/dotfiles" ]; then
     git clone https://github.com/vec2pt/dotfiles.git "$HOME/Documents/GitHub/dotfiles"
     cd "$HOME/Documents/GitHub/dotfiles"
-    stow -t $HOME zsh git starship
+    stow -t $HOME zsh git starship alacritty fastfetch
 fi
