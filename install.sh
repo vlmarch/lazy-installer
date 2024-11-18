@@ -162,10 +162,11 @@ echo
 # https://christitus.com/linux-security-mistakes/
 if ! [[ $(sudo systemctl status ufw | grep -w active) ]]; then
     install_pkgs gufw ufw
-    sudo ufw enable
     sudo ufw default deny incoming
     sudo ufw default allow outgoing
     # sudo ufw allow ssh
+    sudo systemctl enable ufw.service
+    sudo systemctl start ufw.service
 fi
 
 ################################################################################
@@ -177,7 +178,7 @@ fi
 
 # Audio (TODO for Debian)
 if [ $pkg_manager = "pacman" ]; then
-    install_pkgs pipewire pipewire-alsa pipewire-jack pipewire-pulse wireplumber # helvum
+    install_pkgs pipewire pipewire-audio pipewire-alsa pipewire-jack pipewire-pulse wireplumber # helvum
 fi
 
 ################################################################################
@@ -324,10 +325,11 @@ install_pkgs htop # btop
 # Disk Usage (TODO)
 install_pkgs ncdu
 
-# Archive manager / Console Compression Tools (TODO)
+# Archive manager / Console Compression Tools
 # install_pkgs file-roller # GNOME File Roller
 install_pkgs xarchiver
-install_pkgs unrar unrar-free zip unzip p7zip # lzop rar
+install_pkgs p7zip unrar unrar-free zip unzip lzip tar lzop xz
+
 
 # Other tools (TODO)
 install_pkgs tree bat # eza
@@ -408,7 +410,7 @@ if [ $pkg_manager = "apt" ]; then
     # install_pkgs ttf-mscorefonts-installer
 elif [ $pkg_manager = "pacman" ]; then
     install_pkgs ttf-hack-nerd ttf-dejavu ttf-ubuntu-font-family gnu-free-fonts
-    # install_pkgs nerd-fonts ttf-hack ttf-firacode-nerd ttf-inconsolata-nerd ttf-inconsolata ttf-roboto ttf-terminus-nerd
+    # install_pkgs nerd-fonts ttf-hack ttf-firacode-nerd ttf-inconsolata-nerd ttf-inconsolata ttf-roboto ttf-terminus-nerd ttf-iosevka-nerd
     # ttf-ms-win10-auto # AUR (TODO)
     # ttf-ms-win11-auto # AUR (TODO)
 fi
