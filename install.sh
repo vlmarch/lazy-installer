@@ -388,6 +388,7 @@ fi
 
 # Games
 # install_pkgs openal sdl2 # (blender Dependencies)
+# install_pkgs fuse2
 
 # Just for fun
 # install_pkgs fortune
