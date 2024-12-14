@@ -173,7 +173,13 @@ fi
 
 # Battery life
 # install_if_not_exist powertop
-# install_if_not_exist tlp
+if ! [[ $(sudo systemctl status tlp.service | grep -w active) ]]; then
+    install_if_not_exist tlp tlp-rdw
+    sudo systemctl enable tlp.service
+    sudo systemctl enable NetworkManager-dispatcher.service
+    sudo systemctl mask systemd-rfkill.service systemd-rfkill.socket
+fi
+
 ################################################################################
 
 # Audio (TODO for Debian)
