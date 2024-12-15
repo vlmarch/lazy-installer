@@ -109,11 +109,11 @@ echo
 install_pkgs xdg-user-dirs
 xdg-user-dirs-update
 
-mkdir ~/.local/bin
-mkdir ~/.local/share/themes
-mkdir ~/.local/share/icons
-mkdir ~/.local/share/fonts
-mkdir ~/Documents/GitHub
+mkdir -p ~/.local/bin
+mkdir -p ~/.local/share/themes
+mkdir -p ~/.local/share/icons
+mkdir -p ~/.local/share/fonts
+mkdir -p ~/Documents/GitHub
 
 ################################################################################
 
